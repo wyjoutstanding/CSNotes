@@ -1,6 +1,6 @@
 # LearningNote
 [习题](#习题)
-
+[[例题3-1 UVA272 Tex Quotes](https://vjudge.net/problem/UVA-272)](#---3-1-uva272-tex-quotes--https---vjudgenet-problem-uva-272-)
 
 [例题3-1 UVA272 Tex Quotes](#例题3-1-uva272-tex-quotes)
 
