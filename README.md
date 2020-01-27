@@ -1,24 +1,25 @@
-| 例题3-1|UVA272|[ Tex Quotes](#例题3-1-uva272-tex-quotes)|  | |
-| 例题3-2|UVA10082|[ WERTYU](#例题3-2-uva10082-wertyu)| | |
-| 例题3-3|UVA401|[ Palindromes](#例题3-3-uva401-palindromes)| | |
-| 例题3-4|UVA340|[ Master-Mind Hints ](#例题3-4-uva340-master-mind-hints-)| | |
-| 例题3-5|UVA1583|[ Digit Generator](#例题3-5-uva1583-digit-generator)| | |
-| 例题3-6|UVA1584|[ Circular Sequence](#例题3-6-uva1584-circular-sequence)| | |
-| 习题3-1|UVA1585|[ Score](#习题3-1-uva1585-score)| | |
-| 习题3-2|UVA1586|[ Molar mass](#习题3-2-uva1586-molar-mass)| | |
-| 习题3-3|UVA1225|[ Digit Counting](#习题3-3-uva1225-digit-counting)| | |
-| 习题3-4|UVA455|[ Periodic Strings](#习题3-4-uva455-periodic-strings)| | |
-| 习题3-5|UVA227|[ Puzzle](#习题3-5-uva227-puzzle)| | |
-| 习题3-6|UVA232|[ Crossword Answers](#习题3-6-uva232-crossword-answers)| | |
-| 习题3-7|UVA1368|[ DNA Consensus String](#习题3-7-uva1368-dna-consensus-string)| | |
-| 习题3-8|UVA202|[ Repeating Decimals](#习题3-8-uva202-repeating-decimals)| | |
-| 习题3-9|UVA10340|[ All in All](#习题3-9-uva10340-all-in-all)| | |
-| 习题3-10|UVA1587|[ Box](#习题3-10-uva1587-box)| | |
-| 习题3-11|UVA1588|[ Kickdown](#习题3-11-uva1588-kickdown)| | |
-| 习题3-12|UVA11809|[ Floating-Point Numbers](#习题3-12-uva11809-floating-point-numbers)| | |
--==========
-
 # 《算法竞赛入门经典第2版》题解系列 第三章 数组和字符串
+
+| 书中编号 | 题目编号 | 标题（题解链接）                                             | 分类       | 备注                               |
+| -------- | -------- | ------------------------------------------------------------ | ---------- | ---------------------------------- |
+| 例题3-1  | UVA272   | [Tex   Quotes](#例题3-1-uva272-tex-quotes)                   | 水题       | 字符串处理                         |
+| 例题3-2  | UVA10082 | [WERTYU](#例题3-2-uva10082-wertyu)                           | 水题       | 打表                               |
+| 例题3-3  | UVA401   | [Palindromes](#例题3-3-uva401-palindromes)                   | 经典       | 字符串处理，回文串/镜像串          |
+| 例题3-4  | UVA340   | [Master-Mind   Hints ](#例题3-4-uva340-master-mind-hints-)   | 水题       | 阅读理解，做差法                   |
+| 例题3-5  | UVA1583  | [Digit   Generator](#例题3-5-uva1583-digit-generator)        | 打表       | 缩小范围，逆向构建哈希表           |
+| 例题3-6  | UVA1584  | [Circular   Sequence](#例题3-6-uva1584-circular-sequence)    | 水题       | 字符串处理，string使用             |
+| 习题3-1  | UVA1585  | [Score](#习题3-1-uva1585-score)                              | 水题       | 计数                               |
+| 习题3-2  | UVA1586  | [Molar   mass](#习题3-2-uva1586-molar-mass)                  | 水题       | 字符串处理，精度控制               |
+| 习题3-3  | UVA1225  | [Digit   Counting](#习题3-3-uva1225-digit-counting)          | 水题       | 哈希表计数                         |
+| 习题3-4  | UVA455   | [Periodic   Strings](#习题3-4-uva455-periodic-strings)       | 水题       | 周期串                             |
+| 习题3-5  | UVA227   | [Puzzle](#习题3-5-uva227-puzzle)                             | 简单模拟   | 简单模拟，复杂输入输出             |
+| 习题3-6  | UVA232   | [Crossword   Answers](#习题3-6-uva232-crossword-answers)     | 简单模拟   | 字符串处理，坑人输出               |
+| 习题3-7  | UVA1368  | [DNA   Consensus String](#习题3-7-uva1368-dna-consensus-string) | 简单模拟   | 打表计数                           |
+| 习题3-8  | UVA202   | [Repeating   Decimals](#习题3-8-uva202-repeating-decimals)   | 除法模拟   | 循环节（周期串）                   |
+| 习题3-9  | UVA10340 | [All in   All](#习题3-9-uva10340-all-in-all)                 | 子序列判定 | 双指针/dp计数                      |
+| 习题3-10 | UVA1587  | [Box](#习题3-10-uva1587-box)                                 | 长方体判定 | 判定条件，STL                      |
+| 习题3-11 | UVA1588  | [Kickdown](#习题3-11-uva1588-kickdown)                       | 双串匹配   | 注意a，b相对位置                   |
+| 习题3-12 | UVA11809 | [Floating-Point   Numbers](#习题3-12-uva11809-floating-point-numbers) | 数学       | 公式推导，对数降维，精度选择，打表 |
 
 ## 例题3-1 UVA272 Tex Quotes
 
