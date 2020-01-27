@@ -1,4 +1,6 @@
 # LearningNote
+[例题3-2 UVA10082 WERTYU](# 例题3-2-UVA10082-WERTYU)
+## [例题3-1-uva272-tex-quotes](#1234)
 [习题](#习题)
 [[例题3-1 UVA272 Tex Quotes](https://vjudge.net/problem/UVA-272)](#---3-1-uva272-tex-quotes--https---vjudgenet-problem-uva-272-)
 
@@ -24,6 +26,7 @@
 
 
 ## 例题3-1 UVA272 Tex Quotes
+## 例题3-2 UVA10082 WERTYU
 ## 习题
 # 《算法竞赛入门经典第2版》题解系列 第三章 数组和字符串
 
@@ -120,7 +123,7 @@ int main() {
 }
 ```
 
-
+## 例题3-2 UVA10082 WERTYU
 
 ## [例题3-2 UVA10082 WERTYU](https://vjudge.net/problem/UVA-10082)
 
@@ -202,7 +205,7 @@ int main() {
 在一次遍历中，可轻易计算出A，对于B，可用哈希表记录两个序列中不符合A条件的元素出现次数，最后再取两个序列中出现次数少者作为B的贡献值，累加即可。
 
 ### AC代码（C++11，阅读理解）
-
+[例题3-2 UVA10082 WERTYU](# 例题3-2-UVA10082-WERTYU)
 ```cpp
 #include<bits/stdc++.h>
 using namespace std;
