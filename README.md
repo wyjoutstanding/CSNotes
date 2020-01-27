@@ -9,7 +9,7 @@
 
 
 12341
-[Tex Quotes](#[例题3-1 UVa 272 Tex Quotes](https://vjudge.net/problem/UVA-272))
+[Tex Quotes](#例题3-1 UVa 272 Tex Quotes)
 [t1](#3.1)
 
 
