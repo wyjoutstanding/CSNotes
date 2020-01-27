@@ -1,69 +1,26 @@
-# LearningNote
-[例题3-2 UVA10082 WERTYU](# 例题3-2-UVA10082-WERTYU)
-## [例题3-1-uva272-tex-quotes](#1234)
-[习题](#习题)
-[[例题3-1 UVA272 Tex Quotes](https://vjudge.net/problem/UVA-272)](#---3-1-uva272-tex-quotes--https---vjudgenet-problem-uva-272-)
+| 例题3-1|UVA272|[ Tex Quotes](#例题3-1-uva272-tex-quotes)|  | |
+| 例题3-2|UVA10082|[ WERTYU](#例题3-2-uva10082-wertyu)| | |
+| 例题3-3|UVA401|[ Palindromes](#例题3-3-uva401-palindromes)| | |
+| 例题3-4|UVA340|[ Master-Mind Hints ](#例题3-4-uva340-master-mind-hints-)| | |
+| 例题3-5|UVA1583|[ Digit Generator](#例题3-5-uva1583-digit-generator)| | |
+| 例题3-6|UVA1584|[ Circular Sequence](#例题3-6-uva1584-circular-sequence)| | |
+| 习题3-1|UVA1585|[ Score](#习题3-1-uva1585-score)| | |
+| 习题3-2|UVA1586|[ Molar mass](#习题3-2-uva1586-molar-mass)| | |
+| 习题3-3|UVA1225|[ Digit Counting](#习题3-3-uva1225-digit-counting)| | |
+| 习题3-4|UVA455|[ Periodic Strings](#习题3-4-uva455-periodic-strings)| | |
+| 习题3-5|UVA227|[ Puzzle](#习题3-5-uva227-puzzle)| | |
+| 习题3-6|UVA232|[ Crossword Answers](#习题3-6-uva232-crossword-answers)| | |
+| 习题3-7|UVA1368|[ DNA Consensus String](#习题3-7-uva1368-dna-consensus-string)| | |
+| 习题3-8|UVA202|[ Repeating Decimals](#习题3-8-uva202-repeating-decimals)| | |
+| 习题3-9|UVA10340|[ All in All](#习题3-9-uva10340-all-in-all)| | |
+| 习题3-10|UVA1587|[ Box](#习题3-10-uva1587-box)| | |
+| 习题3-11|UVA1588|[ Kickdown](#习题3-11-uva1588-kickdown)| | |
+| 习题3-12|UVA11809|[ Floating-Point Numbers](#习题3-12-uva11809-floating-point-numbers)| | |
+-==========
 
-[例题3-1 UVA272 Tex Quotes](#例题3-1-uva272-tex-quotes)
-
-
-
-
-
-
-
-
-
-12341</br>
-[Tex Quotes](# \[例题3-1 UVa 272 Tex Quotes\](https://vjudge.net/problem/UVA-272))
-</br>
-[t2](#t33)
-[t1](#t31)
-
-
-
-
-
-
-## 例题3-1 UVA272 Tex Quotes
-## 例题3-2 UVA10082 WERTYU
-## 习题
 # 《算法竞赛入门经典第2版》题解系列 第三章 数组和字符串
 
-## 题目分类索引
-
-### 例题
-
-[习题](#习题)
-
-| 书中编号 | 题目编号 | 标题                                                         | 分类 | 备注                      |
-| -------- | -------- | ------------------------------------------------------------ | ---- | ------------------------- |
-| 例题3-1  | UVA272   | [Tex Quotes](#[例题3-1 UVa 272 Tex Quotes](https://vjudge.net/problem/UVA-272)) | 水题 | 字符串处理                |
-| 例题3-2  | UVA10082 | [WERTYU](#[例题3-2 UVa 10082 WERTYU](https://vjudge.net/problem/UVA-10082)) | 水题 | 打表                      |
-| 例题3-3  | UVA401   | [Palindromes](#[例题3-3 UVa 401 Palindromes](https://vjudge.net/problem/UVA-401)) | 经典 | 字符串处理，回文串/镜像串 |
-| 例题3-4  | UVA340   | [Master-Mind Hints](#[例题3-4 UVA 340 Master-Mind Hints ](https://vjudge.net/problem/UVA-340)) | 水题 | 阅读理解，**做差法**      |
-| 例题3-5  | UVA1583  | [Digit Generator](#[例题3-5 UVA 1583 Digit Generator](https://vjudge.net/problem/UVA-1583#author=0)) | 打表 | 缩小范围，逆向构建哈希表  |
-| 例题3-6  | UVA1584  | [Circular Sequence](#[例题3-6 UVA1584 Circular Sequence](https://vjudge.net/problem/UVA-1584)) | 水题 | 字符串处理，string使用    |
-
-### 习题
-
-| 书中编号 | 题目编号 | 标题                                                         | 分类       | 备注                                       |
-| :---------- | :-------- | :------------------------------------------------------------ | :---------- | :------------------------------------------ |
-| 习题3-1 | UVA1585  | [ Score](# [习题3-1 UVA1585 Score](https://vjudge.net/problem/UVA-1585)) | 水题       | 计数                                  |
-| 习题3-2  | UVA1586  | [ Molar mass](# [习题3-2 UVA1586 Molar mass](https://vjudge.net/problem/UVA-1586#author=0)) | 水题       | 字符串处理，精度控制                       |
-| 习题3-3  | UVA1225  | [ Digit Counting](# [习题3-3 UVA1225 Digit Counting](https://vjudge.net/problem/UVA-1225#author=0)) | 水题       | 哈希表计数                                 |
-| 习题3-4  | UVA455   | [ Periodic Strings](# [习题3-4 UVA455 Periodic Strings](https://vjudge.net/problem/UVA-455)) | 水题       | **周期串**                                 |
-| 习题3-5  | UVA227   | [ Puzzle](# [习题3-5 UVA227 Puzzle](https://vjudge.net/problem/UVA-227)) | 简单模拟   | 简单模拟，复杂输入输出                     |
-| 习题3-6  | UVA232   | [ Crossword Answers](# [习题3-6 UVA232 Crossword Answers](https://vjudge.net/problem/UVA-232)) | 简单模拟   | 字符串处理，坑人输出                       |
-| 习题3-7  | UVA1368  | [ DNA Consensus String](# [习题3-7 UVA1368 DNA Consensus String](https://vjudge.net/problem/UVA-1368)) | 简单模拟   | 打表计数                                   |
-| 习题3-8  | UVA202   | [ Repeating Decimals](# [习题3-8 UVA202 Repeating Decimals](https://vjudge.net/problem/UVA-202)) | 除法模拟 | **循环节（周期串）**                       |
-| 习题3-9  | UVA10340 | [ All in All](# [习题3-9 UVA10340 All in All](https://vjudge.net/problem/UVA-10340)) | 子序列判定 | 双指针/dp计数                              |
-| 习题3-10 | UVA1587  | [ Box](# [习题3-10 UVA1587 Box](https://vjudge.net/problem/UVA-1587#author=0)) | 长方体判定 | 判定条件，STL                              |
-| 习题3-11 | UVA1588  | [ Kickdown](# [习题3-11 UVA1588 Kickdown](https://vjudge.net/problem/UVA-1588)) | 双串匹配   | 注意a，b相对位置                           |
-| 习题3-12 | UVA11809 | [ Floating-Point Numbers](# [习题3-12 UVA11809 Floating-Point Numbers](https://vjudge.net/problem/UVA-11809)) | 数学       | 公式推导，**对数降维**，**精度选择**，打表 |
-
-
-## [例题3-1 UVA272 Tex Quotes](https://vjudge.net/problem/UVA-272)
+## 例题3-1 UVA272 Tex Quotes
 
 ### 题目大意
 
@@ -77,9 +34,9 @@
 
 + `scanf("%c",&ch)!=EOF`
 + `(ch=getchar())!=EOF`
-## t31
+
 ### AC代码（C++11）
-<span id='t33'></span>
+
 ```cpp
 #include<bits/stdc++.h>
 using namespace std;
@@ -123,9 +80,9 @@ int main() {
 }
 ```
 
-## 例题3-2 UVA10082 WERTYU
 
-## [例题3-2 UVA10082 WERTYU](https://vjudge.net/problem/UVA-10082)
+
+## 例题3-2 UVA10082 WERTYU
 
 ### 思路分析
 
@@ -152,7 +109,7 @@ int main() {
 }
 ```
 
-## [例题3-3 UVA401 Palindromes](https://vjudge.net/problem/UVA-401)
+## 例题3-3 UVA401 Palindromes
 
 ### 思路分析
 
@@ -189,7 +146,7 @@ int main() {
 }
 ```
 
-## [例题3-4 UVA340 Master-Mind Hints ](https://vjudge.net/problem/UVA-340)
+## 例题3-4 UVA340 Master-Mind Hints 
 
 ### 题目分析
 
@@ -205,7 +162,7 @@ int main() {
 在一次遍历中，可轻易计算出A，对于B，可用哈希表记录两个序列中不符合A条件的元素出现次数，最后再取两个序列中出现次数少者作为B的贡献值，累加即可。
 
 ### AC代码（C++11，阅读理解）
-[例题3-2 UVA10082 WERTYU](# 例题3-2-UVA10082-WERTYU)
+
 ```cpp
 #include<bits/stdc++.h>
 using namespace std;
@@ -238,7 +195,7 @@ int main() {
 }
 ```
 
-## [例题3-5 UVA1583 Digit Generator](https://vjudge.net/problem/UVA-1583#author=0)
+## 例题3-5 UVA1583 Digit Generator
 
 ### 思路分析
 
@@ -278,7 +235,7 @@ int main() {
 }
 ```
 
-## [例题3-6 UVA1584 Circular Sequence](https://vjudge.net/problem/UVA-1584)
+## 例题3-6 UVA1584 Circular Sequence
 
 ### 思路分析
 
@@ -308,7 +265,7 @@ int main() {
 }
 ```
 
-## [习题3-1 UVA1585 Score](https://vjudge.net/problem/UVA-1585)
+## 习题3-1 UVA1585 Score
 
 ### 思路分析
 
@@ -340,7 +297,7 @@ int main() {
 }
 ```
 
-## [习题3-2 UVA1586 Molar mass](https://vjudge.net/problem/UVA-1586#author=0)
+## 习题3-2 UVA1586 Molar mass
 
 ### 思路分析
 
@@ -388,7 +345,7 @@ int main() {
 }
 ```
 
-## [习题3-3 UVA1225 Digit Counting](https://vjudge.net/problem/UVA-1225#author=0)
+## 习题3-3 UVA1225 Digit Counting
 
 ### 思路分析
 
@@ -423,7 +380,7 @@ int main() {
 }
 ```
 
-## [习题3-4 UVA455 Periodic Strings](https://vjudge.net/problem/UVA-455)
+## 习题3-4 UVA455 Periodic Strings
 
 ### 思路分析
 
@@ -473,7 +430,7 @@ int main() {
 }
 ```
 
-## [习题3-5 UVA227 Puzzle](https://vjudge.net/problem/UVA-227)
+## 习题3-5 UVA227 Puzzle
 
 ### 思路分析
 
@@ -542,7 +499,7 @@ int main() {
 }
 ```
 
-## [习题3-6 UVA232 Crossword Answers](https://vjudge.net/problem/UVA-232)
+## 习题3-6 UVA232 Crossword Answers
 
 ### 思路分析
 
@@ -618,7 +575,7 @@ int main() {
 }
 ```
 
-## [习题3-7 UVA1368 DNA Consensus String](https://vjudge.net/problem/UVA-1368)
+## 习题3-7 UVA1368 DNA Consensus String
 
 ### 题目大意
 
@@ -677,7 +634,7 @@ int main() {
 }
 ```
 
-## [习题3-8 UVA202 Repeating Decimals](https://vjudge.net/problem/UVA-202)
+## 习题3-8 UVA202 Repeating Decimals
 
 ### 思路分析
 
@@ -723,7 +680,7 @@ int main() {
 }
 ```
 
-## [习题3-9 UVA10340 All in All](https://vjudge.net/problem/UVA-10340)
+## 习题3-9 UVA10340 All in All
 
 ### 思路分析
 
@@ -833,7 +790,7 @@ int main() {
 
 将判定性问题转为计数问题，也是解决问题的一种思路（dp）
 
-## [习题3-10 UVA1587 Box](https://vjudge.net/problem/UVA-1587#author=0)
+## 习题3-10 UVA1587 Box
 
 ### 思路分析
 
@@ -890,7 +847,7 @@ int main() {
 }
 ```
 
-## [习题3-11 UVA1588 Kickdown](https://vjudge.net/problem/UVA-1588)
+## 习题3-11 UVA1588 Kickdown
 
 ### 思路分析
 
@@ -960,7 +917,7 @@ int main() {
 }
 ```
 
-## [习题3-12 UVA11809 Floating-Point Numbers](https://vjudge.net/problem/UVA-11809)
+## 习题3-12 UVA11809 Floating-Point Numbers
 
 ### 思路分析
 
@@ -1022,6 +979,3 @@ int main() {
 }
 ```
 
-
-
-[#习题]: 
