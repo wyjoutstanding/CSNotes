@@ -11,7 +11,8 @@
 12341</br>
 [Tex Quotes](#例题3-1 UVa 272 Tex Quotes)
 </br>
-[t1](#3.1)
+[t2](#t33)
+[t1](#t31)
 
 
 
@@ -69,9 +70,9 @@
 
 + `scanf("%c",&ch)!=EOF`
 + `(ch=getchar())!=EOF`
-## 3.1
+## t31
 ### AC代码（C++11）
-
+<span id='t33'></span>
 ```cpp
 #include<bits/stdc++.h>
 using namespace std;
