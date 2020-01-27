@@ -5,7 +5,7 @@
 | 例题3-1  | UVA272   | [Tex   Quotes](#例题3-1-uva272-tex-quotes)                   | 水题       | 字符串处理                         |
 | 例题3-2  | UVA10082 | [WERTYU](#例题3-2-uva10082-wertyu)                           | 水题       | 打表                               |
 | 例题3-3  | UVA401   | [Palindromes](#例题3-3-uva401-palindromes)                   | 经典       | 字符串处理，回文串/镜像串          |
-| 例题3-4  | UVA340   | [Master-Mind   Hints ](#例题3-4-uva340-master-mind-hints-)   | 水题       | 阅读理解，做差法                   |
+| 例题3-4  | UVA340   | [Master-Mind   Hints ](#例题3-4-uva340-master-mind-hints)    | 水题       | 阅读理解，做差法                   |
 | 例题3-5  | UVA1583  | [Digit   Generator](#例题3-5-uva1583-digit-generator)        | 打表       | 缩小范围，逆向构建哈希表           |
 | 例题3-6  | UVA1584  | [Circular   Sequence](#例题3-6-uva1584-circular-sequence)    | 水题       | 字符串处理，string使用             |
 | 习题3-1  | UVA1585  | [Score](#习题3-1-uva1585-score)                              | 水题       | 计数                               |
@@ -147,7 +147,7 @@ int main() {
 }
 ```
 
-## 例题3-4 UVA340 Master-Mind Hints 
+## 例题3-4 UVA340 Master-Mind Hints
 
 ### 题目分析
 
