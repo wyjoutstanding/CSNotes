@@ -133,6 +133,18 @@ S长度必须大于等于B的长度，B才有可能是S子串，同时，S最多
 
 时间复杂度T(N)=O(N)，N为B的长度
 
+### 多串问题
+
+#### 最长公共子串
+
+> [718. 最长重复子数组](https://leetcode-cn.com/problems/maximum-length-of-repeated-subarray/)：找最长公共子数组。
+
++ 状态定义：dp(i)(j)表示以`A[i]和A[j]`为结尾的公共子数组的最大长度。结果为`max{dp(i)(j)}`
++ 状态转移：
+  + `A[i]=A[j]`:`dp(i)(j)=dp(i-1)(j-1)+1`
+  + `A[i]!=A[j]`:`dp(i)(j)=0`
++ 初始值：`dp(i)(0)=dp(0)(j)=0`
+
 ### 递增序列问题
 
 #### 最长递增子序列LIS
@@ -608,7 +620,7 @@ for (i : 1~n) {
 
 ## 树
 
-### 二叉树遍历
+### 二/N叉树遍历
 
 + 前中后三种递归和迭代实现（dfs/栈）
   + 根到每个叶子结点的路径
@@ -620,8 +632,18 @@ for (i : 1~n) {
     + [5406. 收集树上所有苹果的最少时间](https://leetcode-cn.com/problems/minimum-time-to-collect-all-apples-in-a-tree/)：计算根到所有苹果结点的最小步数，后序遍历，统计相应结点步数即可。
     + [236. 二叉树的最近公共祖先](https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/)：根据每个结点rt的左右子树返回值判断，左右均为空，说明该结点子树中不存在p和q；左右均不空，说明rt即为最近公共祖先；左空右不空，可能pq均在右子树，进入右子树查找，或者rt是其中p和q的一个点，rt即为所找结点。左不空右空，情况类似第三种。还可以找到根节点到两点的路径，转换为链表/数组的第一个交点问题。
 + 层次遍历（bfs）
-+ 蛇形遍历（双端队列）
-  + 关键问题：每层结点的访问顺序；每个结点的子结点的访问顺
+  + 分层遍历保存结果：
+    + [102. 二叉树的层序遍历](https://leetcode-cn.com/problems/binary-tree-level-order-traversal/)；标记层次或利用队列大小均可。
+    + [107. 二叉树的层次遍历 II](https://leetcode-cn.com/problems/binary-tree-level-order-traversal-ii/)：倒着分层遍历（从上到下的分层遍历结果逆序）。
+    + [429. N叉树的层序遍历](https://leetcode-cn.com/problems/n-ary-tree-level-order-traversal/)：二叉树访问孩子部分改动即可。
+    + [637. 二叉树的层平均值](https://leetcode-cn.com/problems/average-of-levels-in-binary-tree/)：分层累加和。
+    + [993. 二叉树的堂兄弟节点](https://leetcode-cn.com/problems/cousins-in-binary-tree/)：层次遍历判断层次是否相同；设置标记tx和ty，判断两点父结点是否相同
+  + 最大最小深度：
+    + [111. 二叉树的最小深度](https://leetcode-cn.com/problems/minimum-depth-of-binary-tree/)：分层遍历，找到第一个叶子节点返回即可。
+    + [104. 二叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-binary-tree/):层次遍历记录层高，返回最后的层高。
+    + [559. N叉树的最大深度](https://leetcode-cn.com/problems/maximum-depth-of-n-ary-tree/)：将二叉树最大深度中的子结点访问方式改为for循环即可。
++ 蛇形遍历（双端队列）：[103. 二叉树的锯齿形层次遍历](https://leetcode-cn.com/problems/binary-tree-zigzag-level-order-traversal/)；
+  + 关键问题：每层结点的访问顺序；每个结点的子结点的访问顺序
   + 奇数层：从左到右（pop_front)；左子树，右子树（push_back）
   + 偶数层：从右到左（pop_back)；右子树，左子树（push_front）
 + 利用额外的next指针实现O(1)的队列层次遍历功能。（本质是两个单链表操作）
@@ -770,6 +792,26 @@ dict[9]={1,1,0,-1,0,1,-1,-1,1}; // 不推荐使用，容易记错
 普通的双指针维护一个滑动窗口，关键在于如何判断当前窗口是否包含t所有字符。可以用两个`map<char,int>`存储t所有字符和当前窗口的字符出现次数，然后每次通过他们来判断是否满足条件。
 
 或者可以用cnt记录当前窗口的字符满足个数。
+
+类似题目
+
++ [567.字符串的排列](https://leetcode-cn.com/problems/permutation-in-string/):字符顺序不重要，用map统计字符出现次数，问题转换为滑动窗口。
++ [438. 找到字符串中所有字母异位词](https://leetcode-cn.com/problems/find-all-anagrams-in-a-string/):和上一题一模一样，把合法下标存储即可。
++ [560. 和为K的子数组](https://leetcode-cn.com/problems/subarray-sum-equals-k/)：这题咋一看好像是滑动窗口，可惜不是，因为数组元素可为负数，无法保证累加和递增。若能保证元素非负，就可以用滑动窗口，此时可以判断走哪一步更接近目标。
++ [523. 连续的子数组和](https://leetcode-cn.com/problems/continuous-subarray-sum/):该题和560类似，均无法用滑动窗口，多一个技巧，假设`sum(i)=A[0]+A[1]+....+A[i]`，若A[i~j]的和为n\*k，那么`n*k=sum(j)-sum(i)+nums[i]`，整理后得到`sum(j)=sum(i)-nums[i]+n*k=sum(i-1)+n*k`，对等式左右两侧取模，得到`(sum(i-1)+n*k)%k=sum(i-1)%k=sum(j)%k`，因此，第i-1个前缀和与第j个前缀和相等是[i,j]和为n*k的充分必要条件。
+  + 注意判断题目要求子数组长度至少为2
+  + k=0需特殊判断
+
+> [30. 串联所有单词的子串](https://leetcode-cn.com/problems/substring-with-concatenation-of-all-words/)：给定字符串s和单词列表words，其中**每个单词长度一样**。求包含words所有字符的子串起点下标。
+
++ 暴力：枚举所有定长子串，用来两个map统计单词的出现频率。
++ 滑动窗口：以单词长度为基本单位，滑动窗口实现统计。
+
+> [209. 长度最小的子数组](https://leetcode-cn.com/problems/minimum-size-subarray-sum/):找到一个子数组，要求其和>=s，且长度最小。
+
++ 滑动窗口：定义i和j分别指向窗口的左右侧，初值均为0。若子数组和sum>=s，反复向右移动i，更新最短长度，直到sum<s，向右移动j。（注意编程的写法，i要写成循环移动比较简单）
+
+
 
 ## 二分查找
 
