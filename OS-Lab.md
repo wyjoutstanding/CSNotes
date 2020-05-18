@@ -68,6 +68,8 @@ tree：树形展示文件或目录
 
 ### 获取帮助
 
+#### man在线手册
+
 Linux命令极多，通过在线手册获取帮助变得极为重要。通过查询格式如下：
 
 ```shell
@@ -104,6 +106,26 @@ man [手册序号] <命令名称>
 
 + 为了便于搜索，可用`/ <你要搜索的关键字>`进行搜索，查找完毕后可用`n`切换到下一个关键字所在，`shift+n`切换到上一个关键字处。使用`Space`翻页，`Enter`滚动一行。`h`显示帮助(实质是less阅读器的使用帮助)，`q`退出。
 + 若只想快速查看相应命令的参数，使用`命令名称 --help`即可（大部分都有这个）
+
+#### 检索技巧
+
++ 查找文件：find
+
+```
+find 路径名 -name "名字特征"
+find /etc -name "*.list" // 查找/etc下所有后缀为.list的文件
+```
+
++ 文件内容过滤：grep（可用于查找函数定义，说明，结构体）
+
+```
+grep 匹配模式 文件名
+// 在/usr/include下所有头文件中查找time_t的定义，或结构体
+grep "time_t" /usr/include/*.h | grep "typedef"
+```
+
++ 查找二进制文件/man文件位置：whereis
++ 查询手册：man n 函数名/命令
 
 ### 目录管理
 
@@ -142,6 +164,29 @@ Linux是一个**多用户**操作系统，系统中存在多个用户。
 | `cp <源文件> <目标文件>`        | 复制文件或目录       | `cp a.c b.c`；`cp -r adir bdir`（目录复制）           |
 | `rm [选项] 文件`                | 删除文件或目录       | `rm t.c`；`rm -r adir`（递归删除目录）                |
 | `mv <源文件> <目标文件>|<目录>` | 文件更名或移动到目录 | `mv a.c b.c`（更名）；`mv a.c adir`(移动到adir目录下) |
+
+## 用户组和权限管理
+
+### 用户组
+
+保证当前所使用账户为root或者已在`sudo`组中，才有**创建和添加sudo组**操作。
+
++ **创建用户**：`sudo adduser username`，添加用户名为`username`的用户。(密码自己设置，其余配置默认即可)
++ **切换用户**：存在三种方式
+  + `su <username>  `：简单切换到用户，但对应的**工作目录和环境变量**都**不会**切换成user的。
+  + `su - <username>`：对应的工作目录(pwd)和环境变量($PATH)**都会**切换成user的。
+  + `sudo <cmd>`：以特权级执行cmd命令。
++ **查看用户**：
+  + `who am i`
+  + `whoami`
++ **修改用户密码**：`passwd <username>`
++ **退出当前用户**
+  + `exit`
+  + `Ctrl+D`
++ **查看所在组**：`groups <username>`
+
++ **添加到sudo组**：`sudo usermod -G sudo <username>`
++ **删除用户**：`sudo deluser <username> --remove-home`（删除用户组用`groupdel`）
 
 ## vim
 
@@ -369,7 +414,200 @@ vim有两种启动方式，带参数和不带参数
 | `Ctri+v` | 进入**块**可视化模式   |
 | `d`      | 删除选中的所有字符     |
 
+### 重复命令
+
+vim命令支持组合，支持重复。任何命令前加上数字，表示重复次数。（这是一个通用的方法）
+
+`n cmd`表示命令`cmd`重复执行n次，例如
+
++ `n h/j/k/l`：朝左下上右移动n个字符。
++ `n w/b`:向前/后移动n个单词（句子，段落类似）
++ `n dd`：从当前行开始向下删除n行（包括当前行）
++ `n yy`：从当前行开始复制n行（包括当前行）
+
+### 代码操作
+
++ **缩进**：用可视化先选中行
+  + `<<`：被选中行向左缩进1格（可用重复命令）
+  + `>>`：被选中行向右缩进1格（可用重复命令）
+  + `=`：自动调整缩进格式
+
++ **注释**
+  + **块注释**
+    + 1. 普通模式下，将光标移到行首，然后`Ctrl+v`进入块选择模式。
+    + 2. 选择所有需要注释的行的行首
+    + 3. `Shift+i`进入插入模式；输入需要的注释符，比如`//`或者`#`
+    + 4. 最后按**两下**`Esc`
+  + **取消块注释**
+    + 前两步和块注释1、2步相同（注意一定要选择全部注释符），第三步只需按`d`，即可删除选中部分
+
++ **版本对比**：`vimdiff`可实现文件内容比对
+  + **差异结果跳转**：`]c`下一个差异；`[c`上一个差异
+  + **合并**：（每次合并后都执行`:diff`，显示新的差异）
+    + `dp`(diff put)：将光标所在文件的差异复制到另一个文件中
+    + `do`（diff get/obtain)：将另一个文件的当前差异复制到当前文件的对于位置。
+
 ## GCC
+
+### 理论基础
+
+#### 装入基础
+
+可执行代码被载入内存的过程，存在三种演进方式：
+
++ **绝对装入**：可执行代码中地址已知，只能装载到指定的指定空间中。单道批处理系统常用。
++ **可重定位装入**：载入时可执行代码会重新计算每个地址的偏移量，解决绝对地址的问题。可以装到任何地址。多道处理系统。但是移动程序时必须重新计算代码中每个地址的位置。
++ **动态运行时装入**：无需更改，直接载入。代码中地址中保存相对地址，寻址时需加上基地址。软硬件相配合，移动程序时仅需改变基地址即可。
+
+#### 链接方式
+
+链接也存在三种方式，各有优缺点。
+
++ **静态链接**：单纯将不同.o文件的相应段合并，构成exe文件。缺点在于一个.c文件更新，必须重新编译链接所有文件，才能形成exe文件，效率太低，消耗过高。
++ **装入时动态链接**：exe只保存库的头文件，运行时会**加载所有的库**，合并代码（和静态链接效果一致）。升级时无需重新链接。
++ **运行时动态链接**：和装入时动态链接类型，只不过优点在于运行时**只加载用到的库**，没用到不加载。容易升级，但是兼容性不好，需要考虑版本问题。
+
+### 编译&链接&执行文件
+
+假设源文件`hello.c`如下：
+
+```c
+#include "stdio.h"
+int main() {
+	puts("hello world!");
+    return 0;
+}
+```
+
++ 编译：`gcc -o 可执行文件名 源文件名`。例如`gcc -o test.exe test.c`，将`test.c`编译成可执行文件`test.exe`
+
++ 执行：`./test.exe`，必须加上`./`告诉系统在当前目录下搜索，否则对于可执行的文件，系统默认会去搜索环境变量`PATH=/bin:/usr/bin`，而不会搜索当前目录。这主要是出于对系统的安全性考虑，涉及用户组权限管理的问题。（管理员容易受到攻击，比如系统文件的恶意删除）
+
++ 通过`PATH=路径1:路径2:...`设置可执行文件的搜索路径。
+
+
+
+## IO
+
++ open
++ read
++ write
++ close
+
+## 进程管理
+
+核心API
+
++ fork：创建进程
++ exec：执行代码
++ wait
++ exit
+
+### fork
+
+#### 原型
+
++ 父进程通过fork创建子进程
+  + 子进程拷贝父进程的**代码段**、**数据段**和**打开的文件列表**（叉子的主干相同，末梢延展）
+  + 子进程的pid是独立生成的，ppid为父进程的pid
++ 子进程从**fork的返回处**处开始执行，而不是从头开始执行代码（意思是子进程不会再次执行fork，造成死循环）。同理，父进程也是从fork返回处开始执行。父子进程对于fork的返回值不同（OS会特殊处理）
+  + 父进程的fork返回值为子进程的pid
+  + 子进程的fork返回值恒定为0（OS特殊处理）
+
++ 二者此时是**并发执行**，执行无确定的先后顺序
+
+以下是一个演示实例：
+
+```c
+#include <stdio.h>
+#include <unistd.h> // 包含fork函数
+int main() {
+    pid_t pid; // 定义pid类型
+    pid = fork(); // fork子进程
+    if (pid == 0) printf("child process: pid:%d ppid:%d\n",getpid(),getppid());
+    else printf("father process: pid:%d child pid:%d\n", getpid(),pid);
+    return 0;
+}
+```
+
+有可能出现子进程的pid=1，不同于父进程pid的情况
+
++ Linux下pid=1是超级进程init
++ 当父进程先结束时，子进程成为孤儿进程，自动挂在pid=1下
+
+#### 特性
+
++ **并发特性**
+  + 父子进程并发运行，都处于运行状态
+  + 应该是交织执行的
+  + 二者代码段相同
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+void child() {
+    for (int i=0; i < 3; ++ i) {
+        puts("child");
+        sleep(1);
+    }
+
+}
+void parent() {
+    for (int i=0; i < 3; ++ i) {
+        puts("parent");
+        sleep(1);
+    }
+}
+int main() {
+    pid_t pid;
+    pid = fork();
+    if (pid == 0) child();
+    else parent();
+}
+// 交替输出parent和child
+```
+
++ **隔离特性**
+  + 父子进程具有独立的地址空间（虽然它们代码段和数据段一样）
+  + 进程只能访问属于自己的地址空间。如父进程访问子进程的地址空间会报访问错误
+  + 父子进程的全局变量存在于各自的地址空间，无法共享
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+
+int global = 0;
+
+void child() {
+    for (int i=0; i < 3; ++ i) {
+        global ++;
+        printf("In Child, global = %d\n", global);
+        sleep(1);
+    }
+
+}
+void parent() {
+    for (int i=0; i < 3; ++ i) {
+        global ++;
+        printf("In Parent, global = %d\n", global);
+        sleep(1);
+    }
+}
+int main() {
+    pid_t pid;
+    pid = fork();
+    if (pid == 0) child();
+    else parent();
+}
+
+// 一种可能输出
+In Parent, global = 1
+In Child, global = 1
+In Parent, global = 2
+In Child, global = 2
+In Parent, global = 3
+In Child, global = 3
+```
 
 
 
@@ -389,6 +627,27 @@ vim有两种启动方式，带参数和不带参数
   $ ./myecho a b c
   a b c
   ```
+
+### 实现代码
+
+文件名`myecho.c`
+
+```c
+#include <stdio.h>
+// argc是agrv长度，第一个字符串为文件名
+// 打印从命令行传入的参数
+int main(int argc, char* agrv[]) {
+    for (int i=1; i < argc; ++ i) {
+        printf("%s ", agrv[i]);
+    }
+    puts("");
+}
+```
+
+### 编译执行
+
++ 编译：输入`gcc -o myecho myecho.c`
++ 执行：`./myecho a b c`
 
 ## mycat
 
@@ -412,6 +671,53 @@ vim有两种启动方式，带参数和不带参数
   bin:x:2:2:bin:/bin:/usr/sbin/nologin
   ...
   ```
+
+### 实现代码
+
+```c
+#include <stdio.h>
+#include <unistd.h> 	// read,write
+#include <sys/stat.h> 	// open
+#include <fcntl.h>
+#include <stdlib.h> 	// exit
+// error handler
+void panic(char *message) {
+    perror(message);
+    exit(EXIT_FAILURE);
+}
+int main(int argc, char* argv[]) {
+    if (argc < 2) panic("please input cat filename");
+    int sourceFileno = open(argv[1],O_RDONLY);
+    if (sourceFileno == -1) panic("fail to open file!");
+    char buf[512]; 	// read and write buffer
+    while (1) { 	// true is not defined !!
+        int rnum = read(sourceFileno,buf,sizeof(buf));
+        if (rnum == -1) perror("fail to read file!");
+        if (rnum == 0) break;
+        //write(fileno(stdout),buf,sizeof(buf)); // sizeof(buf)>=real read bytes
+        int wnum=write(fileno(stdout),buf,rnum); // write to stdout
+        if (wnum == -1) panic("fail to write");
+    }
+    close(sourceFileno); // close source file
+    return 0;
+}
+```
+
+### 编译执行
+
+- 编译：输入`gcc -o mycat mycat.c`
+- 执行：`./mycat /usr/passwd`
+
+#### 遇到问题
+
+> 以上代码运行时，buf取1024时末尾会多出一行乱码；取512时无法读取完所有内容。
+
+尝试：
+
++ 流程：打开源文件-读取文件内容-写入标准输出-关闭源文件
++ buf大小关系？超出`SSIZE_MAX`?
++ read时不能读刚好sizeof(buf)，要预留\0位置
++ write不能直接写sizeof(buf)，应该写strlen(buf)或者rnum；若要使用`strlen`，必须注意`\0`问题。
 
 ## mycp
 
@@ -437,6 +743,83 @@ vim有两种启动方式，带参数和不带参数
   ...
   ```
 
+### 实现代码
+
+```c
+#include <stdio.h>
+#include <unistd.h> // read,write
+#include <sys/stat.h> // open
+#include <fcntl.h>
+#include <stdlib.h> // exit
+// error handler
+void panic(char *message) {
+    perror(message);
+    exit(EXIT_FAILURE);
+}
+int main(int argc, char* argv[]) {
+    if (argc < 2) panic("please input source filename");
+    if (argc < 3) panic("please input dest filename");
+    int sourceFileno = open(argv[1],O_RDONLY);
+    if (sourceFileno == -1) panic("fail to open source file!");
+    int destFileno = open(argv[2],O_WRONLY|O_CREAT,0777); // mode=0777
+    if (destFileno == -1) panic("fail to open dest file!");
+    char buf[512];
+    while (1) { // true is not defined !!
+        int rnum = read(sourceFileno,buf,sizeof(buf));
+        if (rnum == -1) perror("fail to read file!");
+        if (rnum == 0) break;
+        //write(fileno(stdout),buf,sizeof(buf)); // write to stdout
+        int wnum=write(destFileno,buf,rnum); // write to dest file
+        if (wnum == -1) panic("fail to write");
+    }
+    close(sourceFileno); // close source file
+    close(destFileno); // close dest file
+    return 0;
+}
+```
+
+### 编译执行
+
+- 编译：输入`gcc -o mycp mycp.c`
+- 执行：`./mycp /usr/passwd passwd.bak`
+
+# 常见问题
+
+> 命令行中 int main() 如何传递参数
+
+```c
+#include <stdio.h>
+// argc是agrv长度，第一个字符串为文件名
+int main(int argc, char* agrv[]) {
+    for (int i=0; i < argc; ++ i) {
+		printf("%d %s", i, argv[i]);
+    }
+}
+```
+
+> open创建文件时，无写权限
+
+调用系统函数创建文件时，加上`mode`来设置访问权限。`ls -l`可看到详细的文件信息，包括访问权限。
+
+```c
+open("filename",O_RDWT|O_CREAT, mode); // mode=0777表示访问权限（8进制）
+creat("filename",mode); // 创建文件：是对open的封装
+```
+
+> 实验楼打印字符串到终端末尾出现% 
+
+末尾加上换行符即可。不同系统处理不同，阿里云就不会。
+
+> 库函数不同于系统调用
+
+系统调用是OS提供的最基础的函数，C语言库函数是对系统调用的封装，提供更加便利丰富的功能。
+
+
+
+
+
+
+
 # 参考资料
 
 [简明命令参考](http://cyc2018.gitee.io/cs-notes/#/notes/Linux)
@@ -451,7 +834,7 @@ xv6，ucore
 
 [课程地址](https://www.linuxmooc.com/)
 
-
+[程序装载和链接](https://h5.dingtalk.com/group-live-share/index.htm?encCid=60848862d5c602a4a550b0181a94cdcd&liveUuid=935a8677-b433-4100-88c8-1f5832fcc38a&tdsourcetag=s_pctim_aiomsg#/)
 
 CCF考题
 
@@ -490,3 +873,4 @@ STL
 + 仔细简化条件，拿部分分数，考虑特殊输出
 
 理解算法，不要去背代码
+
