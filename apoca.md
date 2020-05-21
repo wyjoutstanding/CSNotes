@@ -475,6 +475,15 @@ dp(0)=0
 
 若想用递归也可从整个链表反转开始层层推导而来，需要用全局变量记录尾结点。
 
+> [25. K 个一组翻转链表](https://leetcode-cn.com/problems/reverse-nodes-in-k-group/)：K个一组翻转链表，最后一组若不足K个，则不翻转。
+
+先写框架，自上而下的分解问题。
+
++ 大框架：链表分组，翻转链表
++ 具体实现：翻转链表，返回头结点和尾节点
+
+简化题：[24. 两两交换链表中的节点](https://leetcode-cn.com/problems/swap-nodes-in-pairs/)
+
 ## 栈和队列
 
 ### 普通栈
@@ -624,8 +633,8 @@ for (i : 1~n) {
 
 + 前中后三种递归和迭代实现（dfs/栈）
   + 根到每个叶子结点的路径
-  + 中序遍历为升序排列：[98. 验证二叉搜索树](https://leetcode-cn.com/problems/validate-binary-search-tree/)；[230. 二叉搜索树中第K小的元素](https://leetcode-cn.com/problems/kth-smallest-element-in-a-bst/)
-  + 迭代实现中序遍历：[94. 二叉树的中序遍历](https://leetcode-cn.com/problems/binary-tree-inorder-traversal/)：
+  + 中序遍历为升序排列：[98. 验证二叉搜索树](https://leetcode-cn.com/problems/validate-binary-search-tree/)；[230. 二叉搜索树中第K小的元素](https://leetcode-cn.com/problems/kth-smallest-element-in-a-bst/);[783. 二叉搜索树节点最小距离](https://leetcode-cn.com/problems/minimum-distance-between-bst-nodes/)
+  + 迭代实现中序遍历：[94. 二叉树的中序遍历](https://leetcode-cn.com/problems/binary-tree-inorder-traversal/)；[173. 二叉搜索树迭代器](https://leetcode-cn.com/problems/binary-search-tree-iterator/)：**中序迭代拆分步骤**
   + 迭代实现前序遍历：[144. 二叉树的前序遍历](https://leetcode-cn.com/problems/binary-tree-preorder-traversal/)：和中序迭代用一个模板，均借用递归思想编写
   + 迭代实现后序遍历：[145. 二叉树的后序遍历](https://leetcode-cn.com/problems/binary-tree-postorder-traversal/)：【根右左】与【左右根】结果逆序，于是转为求解【根右左】，类似前序迭代法。因此可以统一三种迭代遍历方式。
   + 后序遍历变种：
@@ -689,7 +698,9 @@ for (i : 1~n) {
 
 + dfs+路径标记
 + Bellman-Ford算法
-+ 拓扑排序
++ **拓扑排序**：BFS实现；
+  + [207. 课程表](https://leetcode-cn.com/problems/course-schedule/)：BFS有向图判环
+  + [210. 课程表 II](https://leetcode-cn.com/problems/course-schedule-ii/)：BFS拓扑排序，再判环--入队个数小于结点个数，说明存在环。
 
 ### 连通块
 
@@ -793,14 +804,15 @@ dict[9]={1,1,0,-1,0,1,-1,-1,1}; // 不推荐使用，容易记错
 
 或者可以用cnt记录当前窗口的字符满足个数。
 
-类似题目
+**类似题目--很有趣的题目（实际无法用滑动窗口）**
 
 + [567.字符串的排列](https://leetcode-cn.com/problems/permutation-in-string/):字符顺序不重要，用map统计字符出现次数，问题转换为滑动窗口。
 + [438. 找到字符串中所有字母异位词](https://leetcode-cn.com/problems/find-all-anagrams-in-a-string/):和上一题一模一样，把合法下标存储即可。
 + [560. 和为K的子数组](https://leetcode-cn.com/problems/subarray-sum-equals-k/)：这题咋一看好像是滑动窗口，可惜不是，因为数组元素可为负数，无法保证累加和递增。若能保证元素非负，就可以用滑动窗口，此时可以判断走哪一步更接近目标。
-+ [523. 连续的子数组和](https://leetcode-cn.com/problems/continuous-subarray-sum/):该题和560类似，均无法用滑动窗口，多一个技巧，假设`sum(i)=A[0]+A[1]+....+A[i]`，若A[i~j]的和为n\*k，那么`n*k=sum(j)-sum(i)+nums[i]`，整理后得到`sum(j)=sum(i)-nums[i]+n*k=sum(i-1)+n*k`，对等式左右两侧取模，得到`(sum(i-1)+n*k)%k=sum(i-1)%k=sum(j)%k`，因此，第i-1个前缀和与第j个前缀和相等是[i,j]和为n*k的充分必要条件。
++ [523. 连续的子数组和](https://leetcode-cn.com/problems/continuous-subarray-sum/):该题和560类似，均无法用滑动窗口，多一个技巧，假设`sum(i)=A[0]+A[1]+....+A[i]`，若A[i~j]的和为n\*k，那么`n*k=sum(j)-sum(i)+nums[i]`，整理后得到`sum(j)=sum(i)-nums[i]+n*k=sum(i-1)+n*k`，**对等式左右两侧取模**，得到`(sum(i-1)+n*k)%k=sum(i-1)%k=sum(j)%k`，因此，**第i-1个前缀和与第j个前缀和相等是[i,j]和为n*k的充分必要条件**。
   + 注意判断题目要求子数组长度至少为2
   + k=0需特殊判断
++ [1371. 每个元音包含偶数次的最长子字符串](https://leetcode-cn.com/problems/find-the-longest-substring-containing-vowels-in-even-counts/):也是看起来像滑动窗口，可实际并用不了，因为无法根据当前状态确定下一个方向往哪里走。所以如何根据题目特征要求来设计极为重要。常用手段为前缀和，哈希表。这里还可以使用编码技巧-状态压缩，**前缀和不是存储元音个数，而是存储奇偶状态**。
 
 > [30. 串联所有单词的子串](https://leetcode-cn.com/problems/substring-with-concatenation-of-all-words/)：给定字符串s和单词列表words，其中**每个单词长度一样**。求包含words所有字符的子串起点下标。
 
@@ -1289,6 +1301,16 @@ void nextPermutation(vector<int>& nums) {
 
 [图解排序](https://www.cxyxiaowu.com/725.html)
 
+# 设计模拟
+
+> [284. 顶端迭代器](https://leetcode-cn.com/problems/peeking-iterator/):仅适用Iterator的next和hasnext接口，实现next，hasnext，peek接口。
+
+定义两个变量，top记录当前数组首部元素，isEnd标记是否到达尾部。
+
+next时保存top旧值，作为后续返回值，然后记录下一个next为top新值。若无下一个，则置isEnd=true。
+
+hasNext只需判断isEnd取值即可。
+
 # 常用API
 
 ## 优先级定义
@@ -1322,7 +1344,7 @@ void nextPermutation(vector<int>& nums) {
   priority_queue<Node> pq; // 定义方便些
   ```
 
-| 容器\操作         |                          | 压入                             | 弹出                           |
+| 容器\操作         | 获取                     | 压入                             | 弹出                           |
 | ----------------- | ------------------------ | -------------------------------- | ------------------------------ |
 | **栈/优先队列**   | `s.top()`                | `s.push()`                       | `s.pop()`                      |
 | 队列              | `q.front()`              | `q.push()`                       | `q.pop()`                      |
@@ -1330,4 +1352,75 @@ void nextPermutation(vector<int>& nums) {
 | **vector/string** | `v.back()` `v[i]`        | `v.push_back()`                  | `v.pop_back()`                 |
 
 string的find和erase接口
+
+# 心得体会
+
+## 需求分析
+
+无论做什么，需求分析至关重要，直接决定你后续的努力是否有效。请仔细读题，抽取关键词，用自己的话去表述问题，手动跑样例，来验证存在是否理解偏差。
+
+从需求中抽象出模型，步骤，方法。
+
+## 框架思维
+
+> **自顶向下，逐层分解**
+>
+> **面向API编程**
+
+不要试图一下子把整个程序想明白，写出来。代码就是一个辅助思考的工具，应该在写代码过程中主键完善思路。
+
+框架思维是一个极好的写代码方式，先把整个问题进行抽象，自顶向下写出框架（需要的函数先写API），确定框架没问题后再动手写具体函数。
+
+好处在于便于验证总体思路是否正确，快速完善边界情况，分解任务从而降低复杂度，提升做题信心和效率。
+
+比如字符串处理题，我可以先写好数据读入的框架，然后逐个实现具体处理。
+
+## 测试先行
+
+> 代码未动，测试先行
+
+在需求分析时，理解题目给的测试用例，就可以自己着手设计样例。对于不同情况，有几种常见手段设计：
+
++ **边界测试**：最容易出错的地方，多考虑输入的边界问题，考虑程序最薄弱之处。
++ 正确性测试：这部分无需太多样例。
++ **更改题目样例**：通过更改题目所给的样例，来快速生成更多的测试用例。
++ **随机生成用例**：避免思维定势。
++ **对拍**：对于优化要求很高的算法，可以写一套常规算法，一套优化算法，然后生成小规模数据去测试优化算法。
++ **白盒测试**：在大脑中去调试代码，每次写完，先检查两遍，查看逻辑是否正确。
++ **文件读入**：尽量使用文件读入，节省手动输入的时间：`freopen`，进行重定向，提交时务必关闭它。
+
+
+
+有个需要改变的想法：**某些问题，单纯用一种算法无法解决**。因此要分情况讨论，不同的情况下（测试数据）使用不同的算法。有很多例子：
+
++ STL中sort的实现就是根据不同的数据规模选择不同的排序算法，以此提高效率。
++ 有时一个O(n)的算法对于某些特例无法处理，这时必须设计其它算法来处理这类特例。
++ **启发**：考试时，对于不同数据规模，可设计使用不同的算法处理。
+
+## 熟用API
+
+对常用的库函数做到了如指掌，避免考试时忘记API用法，dev甚至没有语法提示。vim是一个很好的API记忆练习。
+
+常用常总结API
+
++ 使用场景，前提
++ 传入参数
++ 返回参数
+
+常见STL必须熟练使用
+
++ vector
++ list：注意删除是返回下一个节点地址
++ stack/queue
++ priority_queue：注意优先级定义方式
++ set/map：设置set的优先级方式
++ sort：排序算法，优先级与set和优先队列定义相反
+
+## 熟悉环境
+
+存在多种编程环境，大多是IDE。请熟练掌握以下IDE的项目创建，配置，调试，运行方式和编辑快捷键。
+
++ Visual Studio 2010
++ Dev
++ CodeBlock
 

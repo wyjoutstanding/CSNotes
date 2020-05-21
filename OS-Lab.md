@@ -184,13 +184,46 @@ Linux是一个**多用户**操作系统，系统中存在多个用户。
   + `exit`
   + `Ctrl+D`
 + **查看所在组**：`groups <username>`
-
-+ **添加到sudo组**：`sudo usermod -G sudo <username>`
++ **添加到sudo组**：
+  + 普通系统：`sudo usermod -G sudo <username>`
+  + centos：`sudo usermod -G wheel <username>`
 + **删除用户**：`sudo deluser <username> --remove-home`（删除用户组用`groupdel`）
+
+### 文件权限
+
+实例表如下：
+
+|              | 读r（1） | 写w（2） | 执行x（4） | 总和 |
+| ------------ | -------- | -------- | ---------- | ---- |
+| **本用户**   | r        | w        | x          | 7    |
+| **用户组**   | r        | w        | -          | 3    |
+| **其它用户** | r        | -        | -          | 1    |
+
++ 查看具体信息：`ls -l`
+
+```
+-rwx--x--x 1 wyj wyj 152 May 20 20:55 test.c
+```
+
++ 本次为本用户，用户组，其它用户，`-`表示无对应权限。可用`chmod`更改权限。
+
+```
+chmod 777 test.c
+// 输出
+-rwxrwxrwx 1 wyj wyj 152 May 20 20:55 test.c
+```
+
+
 
 ## vim
 
 强大的文本编辑器
+
+配置参考：
+
++ [高赞-Basic和Awesome版本](https://github.com/amix/vimrc)
++ [不错的配置](https://github.com/ma6174/vim)
++ [实验楼简单配置-无插件-好看实用](https://github.com/wklken/vim-for-server)
 
 ### vim简介
 
@@ -485,7 +518,13 @@ int main() {
 
 + 通过`PATH=路径1:路径2:...`设置可执行文件的搜索路径。
 
+### 基本配置
 
+**基本用法**：`cc -std=c99 -o outfile filename`
+
++ `-std=c99`指定语言标准，之前的语言是无法边声明边使用的，为了便于使用，
+  + **增加别名**：`alias cc='cc -std=c99'`
+  + **删除别名**：`unalias cc`
 
 ## IO
 
