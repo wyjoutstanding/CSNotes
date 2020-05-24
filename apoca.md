@@ -1,4 +1,4 @@
-> [可视化网站](https://visualgo.net/en)
+> [c可视化网站](https://visualgo.net/en)
 >
 > [LeetCode分类刷题-基本知识总结](https://github.com/azl397985856/leetcode)：全面性+多图直观
 >
@@ -499,6 +499,8 @@ dp(0)=0
 + 入栈时：若x大于栈顶，舍弃不操作；否则直接压栈。
 + 出栈时：若x等于栈顶，弹栈；否则不操作。
 
+括号匹配：[20. 有效的括号](https://leetcode-cn.com/problems/valid-parentheses/)：多类型括号同时匹配
+
 ### 普通队列
 
 普通队列是一种先入先出的结构。
@@ -640,6 +642,9 @@ for (i : 1~n) {
   + 后序遍历变种：
     + [5406. 收集树上所有苹果的最少时间](https://leetcode-cn.com/problems/minimum-time-to-collect-all-apples-in-a-tree/)：计算根到所有苹果结点的最小步数，后序遍历，统计相应结点步数即可。
     + [236. 二叉树的最近公共祖先](https://leetcode-cn.com/problems/lowest-common-ancestor-of-a-binary-tree/)：根据每个结点rt的左右子树返回值判断，左右均为空，说明该结点子树中不存在p和q；左右均不空，说明rt即为最近公共祖先；左空右不空，可能pq均在右子树，进入右子树查找，或者rt是其中p和q的一个点，rt即为所找结点。左不空右空，情况类似第三种。还可以找到根节点到两点的路径，转换为链表/数组的第一个交点问题。
+  + 中序+前序/后序建树
+    + [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)：前后序确定根，中序划分左右子树个数。注意结点值是否无重复，若重复，可用map存储结点指针。（**本质还是后序遍历处理**）
+    + [106. 从中序与后序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/):前序和中序改改即可。
 + 层次遍历（bfs）
   + 分层遍历保存结果：
     + [102. 二叉树的层序遍历](https://leetcode-cn.com/problems/binary-tree-level-order-traversal/)；标记层次或利用队列大小均可。
@@ -1044,7 +1049,10 @@ $$
 
 字符串分割
 
-模拟正则表达式实现
+模拟正则表达式实现：（以下两题均可用DP实现）
+
++ [10. 正则表达式匹配](https://leetcode-cn.com/problems/regular-expression-matching/):模拟`. *`的实现，`*`需要回溯法才能实现。注意从最简单框架一步步思考。最简单的两个字符串匹配=》增加`.`=》增加`*`=》备忘录优化（**好题**）
++ [44. 通配符匹配](https://leetcode-cn.com/problems/wildcard-matching/)：`*`表示匹配任意长度的字符串（包括空串），可在【LC10】基础上修改边界条件和选择01次条件得到结果。不过必须要用记忆化搜索，否则超时。记忆化不能直接用字符串记录，而要用两个字符串起点下标。
 
 格式转换
 
@@ -1311,6 +1319,27 @@ next时保存top旧值，作为后续返回值，然后记录下一个next为top
 
 hasNext只需判断isEnd取值即可。
 
+# 奇淫巧技
+
+> [32. 最长有效括号](https://leetcode-cn.com/problems/longest-valid-parentheses/)：给定仅有(和)构成的字符串，求左右括号匹配的最长子串长度。
+
++ 暴力：双重循环枚举所有子串，用一重循环判断是否括号匹配。T(n)=O(n^3)
++ **前缀和**+栈：用栈查找每个括号对应匹配的字符下标，若不存在匹配下标则标记为-1。最后遍历标记，找出最长的不含-1的子串，即为答案。T(n)=S(n)=O(n)
++ 动态规划：单串模型（**转移函数定义很特别**）
+  + 状态定义：`dp(i)`表示以`s[i]`为结尾的最长有效括号的长度。
+  + 状态转移（核心）：若s[i]=(，dp(i)=0；因此只需考虑s[i]=)：
+    + `s[i-1]=(`：那么新增两个单位长度`dp(i)=dp(i-2)+2`，形如`()`
+    + `s[i-1-dp(i-1)]=(`：那么`dp(i)=dp(i-2-dp(i-1))+2+dp(i-1)`。形如`...))`
+  + 边界条件：`dp(0)=0`
+  + 遍历方式：从左到右
+  + 时空复杂度：`T(n)==S(n)=O(n)`
++ 栈：设计一套策略，在过程中计算最优值，针对即将要压入的值进行分类讨论：
+  + `(`：直接压入当前的下标。
+  + `)`:只要栈顶非空，先弹出栈顶。然后计算**当前下标-栈顶下标**，更新最大值。
+  + 思路本质：该想法本质和动态规划一致，都是计算以当前符号为合法字符串的末尾的最大长度。
+  + `T(n)=O(n)=S(n)`
++ 双指针：设置l和r指针，从左到右遍历，遇到`(`，l++；否则r++。若`l==r`，用`l+r`去更新最大值。若`r>l`，二者均清0。做完以后再从有往左计算一遍。（处理左括号/有括号多余情况）。`T(n)=O(n);S(n)=O(1)`
+
 # 常用API
 
 ## 优先级定义
@@ -1352,6 +1381,18 @@ hasNext只需判断isEnd取值即可。
 | **vector/string** | `v.back()` `v[i]`        | `v.push_back()`                  | `v.pop_back()`                 |
 
 string的find和erase接口
+
+## vector构造方式
+
+从vector构造一个子数组
+
+```cpp
+vector<int> a{1,2,3}; // 构造数组{1,2,3}
+vector<int> a(size,default_val); // 构造含size个元素的数组，初值为default_val
+vector<int> b(a.begin()+1,a.end()); // 利用a的迭代器构造子数组
+```
+
+
 
 # 心得体会
 
