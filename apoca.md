@@ -501,6 +501,27 @@ dp(0)=0
 
 括号匹配：[20. 有效的括号](https://leetcode-cn.com/problems/valid-parentheses/)：多类型括号同时匹配
 
+> [22. 括号生成](https://leetcode-cn.com/problems/generate-parentheses/)：给定n对括号，生成所有合法的括号排列。
+
++ 一开始用编译原理的递归文法
+
+```
+S->空|(S)|()S|S()
+```
+
++ 但是漏了类似`(())(())`的情况，于是改进如下：
+
+```
+S->空|SS|(S)
+```
+
+官方题解中利用`(A)B`的方式进行推导，其实和这个异曲同工，只是无法推出空罢了，但不会重复，类似动态规划。
+
+也可以直接使用回溯法，每次增加一个左括号/右括号，注意剪枝条件：
+
++ 左括号个数-右括号个数>剩余可用括号个数
++ 右括号个数>左括号个数
+
 ### 普通队列
 
 普通队列是一种先入先出的结构。
@@ -814,6 +835,7 @@ dict[9]={1,1,0,-1,0,1,-1,-1,1}; // 不推荐使用，容易记错
 + [567.字符串的排列](https://leetcode-cn.com/problems/permutation-in-string/):字符顺序不重要，用map统计字符出现次数，问题转换为滑动窗口。
 + [438. 找到字符串中所有字母异位词](https://leetcode-cn.com/problems/find-all-anagrams-in-a-string/):和上一题一模一样，把合法下标存储即可。
 + [560. 和为K的子数组](https://leetcode-cn.com/problems/subarray-sum-equals-k/)：这题咋一看好像是滑动窗口，可惜不是，因为数组元素可为负数，无法保证累加和递增。若能保证元素非负，就可以用滑动窗口，此时可以判断走哪一步更接近目标。
++ [974. 和可被 K 整除的子数组](https://leetcode-cn.com/problems/subarray-sums-divisible-by-k/)：和【LC523】类似，不过**元素可能为负数，求模后需要加上K**；没有长度限制
 + [523. 连续的子数组和](https://leetcode-cn.com/problems/continuous-subarray-sum/):该题和560类似，均无法用滑动窗口，多一个技巧，假设`sum(i)=A[0]+A[1]+....+A[i]`，若A[i~j]的和为n\*k，那么`n*k=sum(j)-sum(i)+nums[i]`，整理后得到`sum(j)=sum(i)-nums[i]+n*k=sum(i-1)+n*k`，**对等式左右两侧取模**，得到`(sum(i-1)+n*k)%k=sum(i-1)%k=sum(j)%k`，因此，**第i-1个前缀和与第j个前缀和相等是[i,j]和为n*k的充分必要条件**。
   + 注意判断题目要求子数组长度至少为2
   + k=0需特殊判断
@@ -1098,6 +1120,21 @@ $$
 
 + BFS：在vis数组上，增加idx记录[0,idx-1]均已访问过，优化向左跳的情况。
 
+> [301. 删除无效的括号](https://leetcode-cn.com/problems/remove-invalid-parentheses/)
+
+一般用DFS回溯剪枝，结果一直超时，利用BFS，巧妙解决最小删除问题，即分层遍历，每次删除1个字符，2个字符，...,n个字符，找到第一个满足的即可。
+
+具体实现时每层都只任意删除一个，然后将字符串插入队列中，下一次再删除1个，就可实现以上功能。
+
+为避免超时，必需增加访问数组，入队时标记元素。
+
+结果需要去重。
+
+## DFS
+
++ 穷举排列组合
+  + [17. 电话号码的字母组合](https://leetcode-cn.com/problems/letter-combinations-of-a-phone-number/):每个数字映射3/4个字母，dfs 依次枚举选择即可
+
 # 常见问题
 
 ## 合并
@@ -1341,6 +1378,8 @@ hasNext只需判断isEnd取值即可。
 + 双指针：设置l和r指针，从左到右遍历，遇到`(`，l++；否则r++。若`l==r`，用`l+r`去更新最大值。若`r>l`，二者均清0。做完以后再从有往左计算一遍。（处理左括号/有括号多余情况）。`T(n)=O(n);S(n)=O(1)`
 
 # 常用API
+
+**负数求模，还是负数，记得再加上mod**
 
 ## 优先级定义
 
