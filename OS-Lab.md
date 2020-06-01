@@ -108,6 +108,10 @@ man [手册序号] <命令名称>
 + 为了便于搜索，可用`/ <你要搜索的关键字>`进行搜索，查找完毕后可用`n`切换到下一个关键字所在，`shift+n`切换到上一个关键字处。使用`Space`翻页，`Enter`滚动一行。`h`显示帮助(实质是less阅读器的使用帮助)，`q`退出。
 + 若只想快速查看相应命令的参数，使用`命令名称 --help`即可（大部分都有这个）
 
+#### 安装 man
+
++ CentOS： `yum install man-pages.noarch`，可用 `man fgets` 验证下成功与否
+
 #### 检索技巧
 
 + 查找文件：find
@@ -818,6 +822,13 @@ execl("/bin/echo","echo","a","b","c",NULL);
 + 从使用角度来说，有PATH比无PATH更方便；参数形式vector比list更好编程，易于修改。因此，编程推荐使用`execvp`。
 + 从进化历史来说，execl应该最先出现，然后发现每次调用函数要传递参数太多了，于是出现vector传参方式。又发现找不到系统的执行文件，于是增加了PATH查找路径方式。最后`execvp`集大成者。
 
+## 文件描述符
+
+文件描述符(file descriptor)
+
++ 定义：一个非负整数，应用程序用来访问文件
++ 应用：打开或创建文件时内核会返回 fd，读写文件均需要指定 fd
+
 ## 常用命令
 
 ### 下载网络资源
@@ -839,7 +850,29 @@ tar -cf 压缩包名 文件名1 文件名2 目录名1 ...
 tar -xvf printf.tgz
 ```
 
+### 格式化代码
 
+#### 风格标准
+
++ 命名：**驼峰**或**下划线**
++ 缩进：`tab=4`空格
+  + 函数的**左花括号**换行
+  + 控制语句 `if while for else`
+    +  **左花括号**加1个空格，不换行
+    + 语句块需换行，即是仅1句，也要换行
++ 空格
+  + 函数声明的参数，函数调用的参数
+  + 操作符，运算符之间
+
+#### **Linux**
+
++ 下载 `indent`
++ `indent -kr -i4 -nut program.c` ：以 `K&R` 风格，缩进4空格，`tab=4`空格来格式化
+
+#### Window10 VSCode
+
++ 选中代码
++ `shift + alt + F`
 
 # 调试技巧
 
@@ -870,6 +903,10 @@ tar -xvf printf.tgz
   $ ./myecho a b c
   a b c
   ```
+
+### 实现思路
+
+从命令行获取参数，从第二个元素开始循环输出即可（第一个为命令名称）
 
 ### 实现代码
 
@@ -914,6 +951,17 @@ int main(int argc, char* agrv[]) {
   bin:x:2:2:bin:/bin:/usr/sbin/nologin
   ...
   ```
+
+### 实现思路
+
+主要使用文件读写接口，Linux 中万物皆文件，标准输出也是一个文件。所以可先从指定的文件读出数据，然后写到屏幕。
+
+### 注意点 
+
++ **边读边写**：为了提高效率和程序处理大数据文件的能力，采用边读边写的方式，而不是一次性读完再写。
++ 写入文件（屏幕）时
+
+
 
 ### 实现代码
 
@@ -1163,8 +1211,6 @@ int main() {
 }
 ```
 
-
-
 ### 遇见问题
 
 > Segmentation fault (core dumped)：段错误，核心转储
@@ -1233,6 +1279,8 @@ int main() {
 
 ## sh1.c
 
+### 需求描述
+
 - 该程序读取用户输入的命令，调用函数mysys(上一个作业)执行用户的命令，示例如下 
 
   ```shell
@@ -1253,7 +1301,579 @@ int main() {
   bin:x:2:2:bin:/bin:/usr/sbin/nologin
   ```
 
-- 请考虑如何实现内置命令cd、pwd、exit 
+- 请考虑如何实现内置命令cd、pwd、exit （系统中没有对应的可执行文件，需自己实现）
+
+### 实现思路
+
+#### 循环界面
+
+在 main 函数写入死循环，每次等待接受用户输入的一行字符串，然后将字符串传给命令解析函数做相应处理。其伪代码逻辑如下：
+
+```pseudocode
+while (true) {
+	print("<");
+	读入一行字符串到cmd_str
+	cmd_handle(cmd_str); // 字符串解析并处理
+}
+```
+
+**注意点**： `fgets` 读入一行时，会将换行符也存储起来，因此读入的时候做个判断，最后一个字符若为换行符，则改为`\0`，直接作为结尾标识。（`gets` 不安全，已被弃用）
+
+#### 三个内置函数
+
+> 为什么不能像 `ls echo cat` 等命令一样，直接用 `mysys` 去调用，而要自己实现？
+
+主要是因为 Linux 系统中不存在 `cd exit` 的可执行文件，可用 `whereis cd` 进行验证，根本找不到对应的可执行文件。而在实验楼环境下，`pwd` 存在可执行文件，所以他是可以直接被调用的。
+
+##### cd
+
++ 改变当前进程的工作目录，直接调用 `char* chdir(char *pathname)` 即可。
+
++ **注意**：若在子进程调用该函数，改变的仅仅是子进程的 `cwd`，结束后父进程 `cwd` 并不会改变。
+
+##### pwd
+
+当前工作目录 `cwd` 作为进程的一个属性，fork 时子进程拷贝父进程的 `cwd`，因此可以通过 mysys 直接调用 pwd 的可执行文件，但为了**提高效率**，还是将其作为系统的内置函数来实现。
+
++ 调用系统函数 `char* getcwd(char*buf,int size)` ,即可轻松获取当前工作目录的绝对路径
++ `getwd` 已被弃用
+
+##### exit
+
++ 在字符串分割之后，调用系统函数 `exit` 即可结束当前进程
++ 注意要在进入父进程调用，若进入子进程在调用永远也只是退出子进程，无法退出 `shell`
+
+### 实现代码
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/wait.h>
+
+// command arguments maximum number
+#define ARGNUM 50
+// DEBUG switch: If don't want DEBUG, just comment it.
+//#define DEBUG
+
+/* Function: Command string parse; remove space, split string, store in argv
+*  Return:   argv list
+*  Attention: argv must use dynamic memory allocation , otherwise after split_cmd overed, argv is release.
+*/
+char **split_cmd(char *cmd_str)
+{
+    char **argv = (char **)malloc(sizeof(char *) * ARGNUM); // dynamic malloc !!!
+    const char d[2] = " ";
+    argv[0] = strtok(cmd_str, d); // argv[0]=executed file name
+    int i = 1;                    // i=0 is random
+    while (1) {
+        if (i >= ARGNUM)
+            perror("Argument num is to much");
+        argv[i] = strtok(NULL, " "); // first param=NULL
+        if (argv[i] == NULL)
+            break;
+        ++i;
+    }
+#ifdef DEBUG
+    puts("==DEBUG== split_cmd.argv:");
+    char **p = argv;
+    while (*p != NULL)
+    {
+        printf("%s\n", *p);
+        ++p;
+    }
+#endif
+    return argv;
+}
+// PWD: Print calling process's current workplace directory
+void mypwd()
+{
+    char buf[100];
+    char *ret = getcwd(buf, 100);
+    if (ret == NULL)
+        perror("mypwd-getpwd is error");
+    else
+        puts(buf);
+}
+void mycd(char *argv[])
+{
+    if (argv[1] == NULL)
+        perror("mycd: pathname is NULL");
+    int ret = chdir(argv[1]);
+    if (ret < 0)
+        perror("cd error");
+}
+/*
+    Function: Fork a child process to exec cmd
+    Args:
+        argv: Argument list, include cmd name and it's args
+    Implementation Approach:
+        1. Fork a child process
+        2. By calling execvp, child exec new program
+        3. Father block until child is return
+*/
+void mysys(char **argv)
+{
+    pid_t pid = fork();
+    if (pid == 0) { // child
+        int error = execvp(argv[0], argv);
+        if (error < 0) { // child exec fail
+            perror("execvp");
+            exit(0);
+        }
+    }
+    else { // father
+        wait(NULL);
+    }
+}
+// API: Handle command
+void cmd_handle(char *command)
+{
+    // parse command
+    char *cmd_str = (char *)malloc(sizeof(char) * (strlen(command) + 1)); // important!!!
+    strcpy(cmd_str, command); // copy const char* -> char*
+    char **argv = split_cmd(cmd_str);
+    // handle command
+    if (strcmp(argv[0], "exit") == 0)
+        exit(0);
+    else if (strcmp(argv[0], "pwd") == 0)
+        mypwd();
+    else if (strcmp(argv[0], "cd") == 0)
+        mycd(argv);
+    else
+        mysys(argv); // system call
+    // free heap memory
+    free(cmd_str);
+    free(argv);
+}
+int main()
+{
+    char cmd[80];
+    while (1) {
+        printf(">");
+        fgets(cmd, 80, stdin);
+        int len = strlen(cmd);
+        if (cmd[len - 1] == '\n')
+            cmd[len - 1] = '\0'; // delete newline
+        cmd_handle(cmd);
+    }
+    return 0;
+}
+```
+
+### 遇见问题
+
+#### 问题描述
+
+为了提高程序**可读性**和**复用性**，将 `mysys` 中的字符串解析单独提取出来，封装为一个函数 ，传入参数命令字符串 `command`，返回解析后的命令参数列表 `argv`。
+
+```c
+char **split_cmd(char *command); 
+```
+
+**测试**时该**函数内部**的参数解析**正常**，但是该**函数返回的参数列表**打印出来的内容却是**乱码**。
+
+
+
+#### 问题分析
+
+使用调试技巧大致确定问题范围，`split_cmd` 内部实现正确，问题出在了返回的参数列表上
+
++ **问题1**：`argv` 是局部开辟的数组，在函数结束后自动释放该数组，因此返回的参数列表地址已经被释放了
+
++ **解决1**：`argv` 使用 `malloc` 动态申请，只要不手动释放，这个内存一直存在
+
+一执行，发现问题和最初一样，但通过写 demo 方式验证 `malloc` 是可行的
+
++ **问题2**：`argv` 是 `char **` 类型，突然反应过来我没有对二维数组都开辟内存，但仔细一想又不对，`argv[i]` 中存储的是 `char*` 类型，不需要申请，而 `char *` 来自于 `strtok` 返回的地址。那问题找到了，因为 `strtok` 会改变原字符串，于是我必须使用 `strcpy` 将传入的 `commmand` 拷贝一份为 `cmd_str`，而该 `cmd_str` 是局部变量，和问题1相同
++ **解决2**：保证传入的 `command` 不是常量字符串（在传入之前先 `strcpy`），删除函数内部的 `strcpy`，使得`command` 在该函数内部不是局部变量
+
+
+
+#### 问题小结
+
++ **内存分配**：局部变量在函数结束后自动释放，分配与栈上；全局变量分配在堆上，生存周期与整个程序相同
++ **动态申请**：一维指针只需一次 `malloc` 分配；而二维指针需要对两个分别申请内存，通常会忽略第二层的申请
+
+### 总结心得
+
++ **调试技巧**：虽然程序小，但是如何写得规范，具有可读性和扩展性，却很考验编程功底。其中调试是一个很重要的部分，写代码70%时间都在调试，常见技巧如下：
+  + **缩小范围**：朱老师提供的**缩小范围**调试方法真是受益匪浅，类似二分查找，快速缩小问题范围（即每次排除一定没问题的部分），定位问题所在。
+  + **封装简化**：将最复杂的部分抽取出来，封装为函数，进行单独测试。同时将确定没问题的代码删除，简化逻辑，便于定位查找。
+  + **实例demo**：对于自己不确定的代码，写几个demo测试验证一下猜想。
+  + **寻求帮助**：若以上三个步骤均无法找出bug，那么就可通过**搜索引擎**、著名的问答论坛、老师、同学和朋友寻求帮助。问问题时要用**简化后的代码**，节省双方时间，提高得到答案的效率！
+
+## sh2.c: 实现shell程序
+
+### 需求描述
+
+要求在第1版（sh1.c）的基础上，添加如下功能
+
+- 实现文件重定向 
+
+  ```
+  # 执行sh2
+  $ ./sh2
+  
+  # 执行命令echo，并将输出保存到文件log中
+  > echo hello >log
+  
+  # 打印cat命令的输出结果
+  > cat log
+  hello
+  ```
+
+### 思路分析
+
+#### 思路一
+
+只处理外部命令，即通过 `mysys` 执行的命令，内置命令如 `pwd` 先不实现。
+
+主要思路：
+
++ **字符串处理**：假设 `>outfile` 或 `> outfile` 一定在参数末尾，因此只需参数分割后，判断最后一个参数的首字符是否为 `>` 或者倒数第二个参数是否为 `">"`，取出对应的文件名，并将对应位置置空
++ **子进程重定向**：子进程会拷贝父进程的文件描述符表，因此先打开要输出的文件，然后用 `dup2(fd,1)` 将标准输出重定向到 `fd`，接着关闭 `fd`， 
+
+其核心伪代码如下：
+
+```c
+pid_t pid = fork();
+if (pid == 0) {
+    int fd = open("指定的文件");
+    dup2(fd,1); // 标准输出重定向为fd
+    close(fd); // 关闭fd
+    /* 命令执行操作 */
+}
+```
+
+#### 思路二
+
+将内部和外部程序**统一处理**，思路如下：
+
++ 在 `Shell` 处理程序中，先保存**标准输出**到 `fd1_bak`
++ 打开指定输出文件 `fd`，将**标准输出**重定向为 `fd`，并释放 `fd`
++ 执行完对应命令后，将**标准输出**重定向为 `fd1_bak`，并释放 `fd1_bak`
+
+其核心伪代码如下：
+
+```c
+int fd1_bak = dup(1); // 备份标准输出
+int fd = open("指定文件"); // 打开指定文件
+dup2(fd, 1); // 标准输出重定向为fd
+free(fd); // 释放fd的文件描述符
+/* 这里是对应的执行命令 */
+dup2(fd1_bak, 1); // 文件描述符1重定向为标准输出
+free(fd1_bak); // 释放fd1_bak
+```
+
+**注意**：系统 `ls` 可区分输出到屏幕还是文件，若是输出到屏幕，需要特殊处理，比如排版和颜色；而输出到文件，直接分行输出。
+
+### 思路一代码
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/wait.h>
+// open, creat
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+// command arguments maximum number
+#define ARGNUM 50
+// DEBUG switch: If don't want DEBUG, just comment it.
+//#define DEBUG
+
+/* Function: Command string parse; remove space, split string, store in argv
+*  Return:   argv list
+*  Attention: argv must use dynamic memory allocation , otherwise after split_cmd overed, argv is release.
+*/
+char **split_cmd(char *cmd_str)
+{
+    char **argv = (char **)malloc(sizeof(char *) * ARGNUM); // dynamic malloc !!!
+    const char d[2] = " ";
+    argv[0] = strtok(cmd_str, d); // argv[0]=executed file name
+    int i = 1;                    // i=0 is random
+    while (1) {
+        if (i >= ARGNUM)
+            perror("Argument num is to much");
+        argv[i] = strtok(NULL, " "); // first param=NULL
+        if (argv[i] == NULL)
+            break;
+        ++i;
+    }
+#ifdef DEBUG
+    puts("==DEBUG== split_cmd.argv:");
+    char **p = argv;
+    while (*p != NULL)
+    {
+        printf("%s\n", *p);
+        ++p;
+    }
+#endif
+    return argv;
+}
+// PWD: Print calling process's current workplace directory
+void mypwd()
+{
+    char buf[100];
+    char *ret = getcwd(buf, 100);
+    if (ret == NULL)
+        perror("mypwd-getpwd is error");
+    else
+        puts(buf);
+}
+void mycd(char *argv[])
+{
+    if (argv[1] == NULL)
+        perror("mycd: pathname is NULL");
+    int ret = chdir(argv[1]);
+    if (ret < 0)
+        perror("cd error");
+}
+/*
+    Function: Fork a child process to exec cmd
+    Args:
+        argv: Argument list, include cmd name and it's args
+    Implementation Approach:
+        1. Fork a child process
+        2. By calling execvp, child exec new program
+        3. Father block until child is return
+*/
+void mysys(char **argv)
+{
+    // redirect
+    char outfile[100];
+    int len=0;
+    for (char **p = argv; *p != NULL; ++ p)
+        ++ len;
+    if (len >= 2) {
+        if (argv[len - 1][0] == '>') { // >outfile
+            strcpy(outfile, argv[len - 1] + 1);
+            argv[len - 1] = NULL;
+        }
+        else if (strcmp(argv[len - 2], ">") == 0) { // > outfile
+            strcpy(outfile, argv[len - 1]);
+            argv[len - 2] = NULL;
+        }
+    }
+    // fork
+    pid_t pid = fork();
+    if (pid == 0) { // child
+        // redirect stdout -> outfile
+        if (strlen(outfile) != 0) {
+            printf("outfile = [%s]\n", outfile);
+            int fd = open(outfile, O_CREAT|O_RDWR|O_TRUNC, 0666);
+            dup2(fd, 1);
+            close(fd);
+        }
+        // exec a new program
+        int error = execvp(argv[0], argv);
+        if (error < 0) { // child exec fail
+            perror("execvp");
+            exit(0);
+        }
+    }
+    else { // father
+        wait(NULL);
+    }
+}
+// API: Handle command
+void cmd_handle(char *command)
+{
+    // parse command
+    char *cmd_str = (char *)malloc(sizeof(char) * (strlen(command) + 1)); // important!!!
+    strcpy(cmd_str, command);                                             // copy const char* -> char*
+    char **argv = split_cmd(cmd_str);
+    // handle command
+    if (strcmp(argv[0], "exit") == 0)
+        exit(0);
+    else if (strcmp(argv[0], "pwd") == 0)
+        mypwd();
+    else if (strcmp(argv[0], "cd") == 0)
+        mycd(argv);
+    else
+        mysys(argv); // system call
+    // free heap memory
+    free(cmd_str);
+    free(argv);
+}
+int main()
+{
+    char cmd[80];
+    while (1) {
+        printf(">");
+        fgets(cmd, 80, stdin);
+        int len = strlen(cmd);
+        if (cmd[len - 1] == '\n')
+            cmd[len - 1] = '\0'; // delete newline
+        cmd_handle(cmd);
+    }
+    return 0;
+}
+```
+
+### 思路二代码
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/wait.h>
+// open, creat
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+// command arguments maximum number
+#define ARGNUM 50
+// DEBUG switch: If don't want DEBUG, just comment it.
+//#define DEBUG
+
+/* Function: Command string parse; remove space, split string, store in argv
+*  Return:   argv list
+*  Attention: argv must use dynamic memory allocation , otherwise after split_cmd overed, argv is release.
+*/
+char **split_cmd(char *cmd_str)
+{
+    char **argv = (char **)malloc(sizeof(char *) * ARGNUM); // dynamic malloc !!!
+    const char d[2] = " ";
+    argv[0] = strtok(cmd_str, d); // argv[0]=executed file name
+    int i = 1;                    // i=0 is random
+    while (1) {
+        if (i >= ARGNUM)
+            perror("Argument num is to much");
+        argv[i] = strtok(NULL, " "); // first param=NULL
+        if (argv[i] == NULL)
+            break;
+        ++i;
+    }
+#ifdef DEBUG
+    puts("==DEBUG== split_cmd.argv:");
+    char **p = argv;
+    while (*p != NULL)
+    {
+        printf("%s\n", *p);
+        ++p;
+    }
+#endif
+    return argv;
+}
+// PWD: Print calling process's current workplace directory
+void mypwd()
+{
+    char buf[100];
+    char *ret = getcwd(buf, 100);
+    if (ret == NULL)
+        perror("mypwd-getpwd is error");
+    else
+        puts(buf);
+}
+void mycd(char *argv[])
+{
+    if (argv[1] == NULL)
+        perror("mycd: pathname is NULL");
+    int ret = chdir(argv[1]);
+    if (ret < 0)
+        perror("cd error");
+}
+/*
+    Function: Fork a child process to exec cmd
+    Args:
+        argv: Argument list, include cmd name and it's args
+    Implementation Approach:
+        1. Fork a child process
+        2. By calling execvp, child exec new program
+        3. Father block until child is return
+*/
+void mysys(char **argv)
+{
+    // fork
+    pid_t pid = fork();
+    if (pid == 0) { // child
+        // exec a new program
+        int error = execvp(argv[0], argv);
+        if (error < 0) { // child exec fail
+            perror("execvp");
+            exit(0);
+        }
+    }
+    else { // father
+        wait(NULL);
+    }
+}
+// API: Handle command
+void cmd_handle(char *command)
+{
+    // parse command
+    char *cmd_str = (char *)malloc(sizeof(char) * (strlen(command) + 1)); // important!!!
+    strcpy(cmd_str, command);                                             // copy const char* -> char*
+    char **argv = split_cmd(cmd_str);
+
+    // redirect
+    char outfile[100]={'\0'}; // must init!!!
+    int len=0;
+    for (char **p = argv; *p != NULL; ++ p)
+        ++ len; // printf("argv[%d] = %s\n", len - 1, *p);
+    if (len >= 2) {
+        if (argv[len - 1][0] == '>') { // >outfile
+            strcpy(outfile, argv[len - 1] + 1);
+            argv[len - 1] = NULL;
+        }
+        else if (strcmp(argv[len - 2], ">") == 0) { // > outfile
+            strcpy(outfile, argv[len - 1]);
+            argv[len - 2] = NULL;
+        }
+    }
+    int fd1_bak = -1;
+    // redirect stdout -> outfile
+    if (strlen(outfile) != 0) {
+        printf("outfile = [%s]\n", outfile);
+        fd1_bak = dup(1); // save stdout
+        int fd = open(outfile, O_CREAT|O_RDWR|O_TRUNC, 0666);
+        //printf("fd = %d\n", fd);
+        dup2(fd, 1);
+        close(fd);
+    }
+    // handle command
+    if (strcmp(argv[0], "exit") == 0)
+        exit(0);
+    else if (strcmp(argv[0], "pwd") == 0)
+        mypwd();
+    else if (strcmp(argv[0], "cd") == 0)
+        mycd(argv);
+    else
+        mysys(argv); // system call
+
+    if (fd1_bak != -1) {
+        dup2(fd1_bak, 1);
+        close(fd1_bak);
+    }
+    //printf("release fd1_bak\n");
+    // free heap memory
+    free(cmd_str);
+    free(argv);
+}
+int main()
+{
+    char cmd[80];
+    while (1) {
+        printf(">");
+        fgets(cmd, 80, stdin);
+        int len = strlen(cmd);
+        if (cmd[len - 1] == '\n')
+            cmd[len - 1] = '\0'; // delete newline
+        cmd_handle(cmd);
+    }
+    return 0;
+}
+```
+
+
 
 # 常见问题
 
@@ -1374,6 +1994,8 @@ int main()
 《鸟叔的linux私房菜》：命令，使用
 
 《Unix环境高级编程》-APUE：编程接口
+
+[The C Programming Language](https://book.douban.com/subject/1139336/)：C语言程序设计经典，学习其编码风格
 
 xv6，ucore
 

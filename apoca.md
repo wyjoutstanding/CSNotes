@@ -696,6 +696,7 @@ for (i : 1~n) {
 + 子树问题
   + 子树遍历[508. 出现次数最多的子树元素和](https://leetcode-cn.com/problems/most-frequent-subtree-sum/)：遍历每棵子树，求各自和，统计和出现频率。
   + 子树判断/两棵相同树判定：[572. 另一个树的子树](https://leetcode-cn.com/problems/subtree-of-another-tree/)：判断t是否为s的一颗子树。类似问题，判断t是否为s的一个部分。
+  + **镜像树**：[101. 对称二叉树](https://leetcode-cn.com/problems/symmetric-tree/)：**BFS**和序列化解法值得思考
 
 > [LeetCode199. 二叉树的右视图](https://leetcode-cn.com/problems/binary-tree-right-side-view/)：打印一个二叉树的右视图
 
@@ -1441,6 +1442,15 @@ vector<int> a{1,2,3}; // 构造数组{1,2,3}
 vector<int> a(size,default_val); // 构造含size个元素的数组，初值为default_val
 vector<int> b(a.begin()+1,a.end()); // 利用a的迭代器构造子数组
 ```
+
+## IO
+
+### 输入
+
+字符串按行读入
+
++ `fgets(char *buf, int max_size, FILE *stream)`：**碰见换行停止**并**存储换行**
++ `scanf("%s", buf)` ：碰见**空格/tab/换行停止**，跳过它们，**不存储**
 
 
 
