@@ -829,6 +829,11 @@ execl("/bin/echo","echo","a","b","c",NULL);
 + 定义：一个非负整数，应用程序用来访问文件
 + 应用：打开或创建文件时内核会返回 fd，读写文件均需要指定 fd
 
+管道：
+
++ 用于连接两个进程
++ `ls /bin | wc -l`
+
 ## 常用命令
 
 ### 下载网络资源
@@ -1118,7 +1123,7 @@ int main(int argc, char* argv[]) {
   bin    core  home	     lib	 mnt   root  snap  tmp	vmlinuz
   boot   dev   initrd.img      lost+found  opt   run   srv   usr	vmlinuz.old
   cdrom  etc   initrd.img.old  media	 proc  sbin  sys   var
-  ----------------------
+  --------------------------------------------------
   ```
 
 ### 实现代码
@@ -1526,7 +1531,7 @@ char **split_cmd(char *command);
 
 ### 思路分析
 
-#### 思路一
+#### 思路一-仅处理内置程序
 
 只处理外部命令，即通过 `mysys` 执行的命令，内置命令如 `pwd` 先不实现。
 
@@ -1547,7 +1552,7 @@ if (pid == 0) {
 }
 ```
 
-#### 思路二
+#### 思路二-内外部程序统一处理
 
 将内部和外部程序**统一处理**，思路如下：
 
@@ -1869,6 +1874,119 @@ int main()
             cmd[len - 1] = '\0'; // delete newline
         cmd_handle(cmd);
     }
+    return 0;
+}
+```
+
+
+
+## sh3.c: 实现shell程序，要求在第2版的基础上，添加如下功能
+
+### 需求描述
+
+- 实现管道
+
+- 只要求连接两个命令，不要求连接多个命令
+
+- 不要求同时处理管道和重定向
+
+  ```
+  # 执行sh3
+  $ ./sh3
+  
+  # 执行命令cat和wc，使用管道连接cat和wc
+  > cat /etc/passwd | wc -l
+  ```
+
+- 考虑如何实现管道和文件重定向，暂不做强制要求
+
+  ```
+  $ cat input.txt
+  3
+  2
+  1
+  3
+  2
+  1
+  $ cat <input.txt | sort | uniq | cat >output.txt
+  $ cat output.txt
+  1
+  2
+  3
+  ```
+
+### 遇见问题
+
+> 父进程创建管道，子进程向管道写数据，父进程读数据，若是父进程中没有close(fd[1])，则父进程会卡死在execvp中？
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() 
+{
+    int fd[2];
+    char buf[50];
+    pipe(fd);
+    int pid = fork();
+    if (pid == 0) {
+        dup2(fd[1], 1);
+        close(fd[0]);
+        close(fd[1]);
+        char *argv[] = {"cat", "/etc/passwd", NULL};
+        execvp(argv[0], argv);
+    }
+    dup2(fd[0], 0);
+    wait(NULL);
+    printf("father\n");
+//    close(fd[0]);
+//    close(fd[1]); // ??注释掉这句程序就无响应了，卡在execvp中
+    char *argv[] = {"wc", "-l", NULL};
+    execvp(argv[0], argv);
+    return 0;
+}
+```
+
+错误代码二：父进程的写端必须关闭子进程才能不阻塞？
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() {
+    int fd[2];
+    char buf[50];
+    pipe(fd);
+    int pid1 = fork();
+    if (pid1 == 0) {
+        puts("process1 begin");
+        dup2(fd[1], 1);
+        close(fd[0]);
+        close(fd[1]);
+        char *argv[] = {"cat", "/etc/passwd", NULL};
+        execvp(argv[0], argv);
+    }
+    wait(NULL);
+    puts("process1 end");
+    int pid2 = fork();
+    if (pid2 == 0) {
+        puts("process2 begin");
+        dup2(fd[0], 0);
+        close(fd[0]);
+        close(fd[1]);
+        char *argv[] = {"wc", "-l", NULL};
+        execvp(argv[0], argv);
+    }
+    puts("----before wait---- fork2 father begin");
+    close(fd[1]); // 这一句注释掉wait陷入忙等，无反应
+    wait(NULL);
+    puts("process2 end");
     return 0;
 }
 ```
