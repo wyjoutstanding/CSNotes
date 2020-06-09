@@ -813,9 +813,8 @@ dict[9]={1,1,0,-1,0,1,-1,-1,1}; // 不推荐使用，容易记错
 + 连通性：两点间连通（存在无向边）是一种等价关系，可用于图中连通块求解。
   + 社交网络可分为几个子网络，朋友圈划分
   + 网络划分子网
-
 + `=`：具有等价性的运算符，如`a==b`，给定一系列`==,!=`等式，可将相等的变量连在一块，用来判定是否合法
-
++ [990. 等式方程的可满足性](https://leetcode-cn.com/problems/satisfiability-of-equality-equations/)：仅含 `==` 和 `!=`，判断赋值成立与否；第一遍扫描等号，建立并查集，第二遍扫描不等号，判断是否已在同一个集合，若是，则直接返回 `false`
 + 相邻：连续的可在一个集合[128. 最长连续序列](https://leetcode-cn.com/problems/longest-consecutive-sequence/)。
 
 ## 双指针
@@ -1172,6 +1171,7 @@ $$
 
 + 穷举排列组合
   + [17. 电话号码的字母组合](https://leetcode-cn.com/problems/letter-combinations-of-a-phone-number/):每个数字映射3/4个字母，dfs 依次枚举选择即可
+  + [面试题46. 把数字翻译成字符串](https://leetcode-cn.com/problems/ba-shu-zi-fan-yi-cheng-zi-fu-chuan-lcof/)：回溯搜索，每次可选 1 个 或 2 个进行组合，选两个选满足一定条件，注意**前导零**失效判断
 
 # 常见问题
 

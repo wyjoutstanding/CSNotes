@@ -13,7 +13,11 @@
 # 实验环境
 
 + OS：[利用实验楼提供的虚拟机](https://www.shiyanlou.com/courses/1)|云主机
-+ 工具：vim，GCC（std=99）
++ 工具：VIM，TCC
++ 编辑器：centos 安装 cscode，安装插件
+  + vim 模拟器
+  + `shift+alt+F` 按照提示安装格式化插件
+  + `doxygen` ：各类注释模板，可生成文档
 
 # Linux
 
@@ -129,8 +133,8 @@ grep 匹配模式 文件名
 grep "time_t" /usr/include/*.h | grep "typedef"
 ```
 
-+ 查找二进制文件/man文件位置：whereis
-+ 查询手册：man n 函数名/命令
++ 查找二进制文件/man文件位置：`whereis`
++ 查询手册：`man n 函数名/命令`
 
 ### 目录管理
 
@@ -218,7 +222,18 @@ chmod 777 test.c
 -rwxrwxrwx 1 wyj wyj 152 May 20 20:55 test.c
 ```
 
+## 变量
 
+### 普通变量
+
++ **变量命名**：字母，数字，下划线组成，且不以数字开头（和C命名一样）
++ **声明变量**：`declare variable_name` 表示声明一个名为 `variable_name` 的变量
++ **变量赋值**：`variable_name=value` 表示变量赋为 `value`（注意等号左右无空格）
++ **引用变量**：`$variable_name` 表示引用变量 `variable_name` 的值，`echo $tmp` 可输出对应变量值
+
+### 环境变量
+
+环境变量的作用域比普通变量大
 
 ## vim
 
@@ -966,8 +981,6 @@ int main(int argc, char* agrv[]) {
 + **边读边写**：为了提高效率和程序处理大数据文件的能力，采用边读边写的方式，而不是一次性读完再写。
 + 写入文件（屏幕）时
 
-
-
 ### 实现代码
 
 ```c
@@ -1280,8 +1293,6 @@ int main() {
 }
 ```
 
-
-
 ## sh1.c
 
 ### 需求描述
@@ -1479,8 +1490,6 @@ char **split_cmd(char *command);
 
 **测试**时该**函数内部**的参数解析**正常**，但是该**函数返回的参数列表**打印出来的内容却是**乱码**。
 
-
-
 #### 问题分析
 
 使用调试技巧大致确定问题范围，`split_cmd` 内部实现正确，问题出在了返回的参数列表上
@@ -1493,8 +1502,6 @@ char **split_cmd(char *command);
 
 + **问题2**：`argv` 是 `char **` 类型，突然反应过来我没有对二维数组都开辟内存，但仔细一想又不对，`argv[i]` 中存储的是 `char*` 类型，不需要申请，而 `char *` 来自于 `strtok` 返回的地址。那问题找到了，因为 `strtok` 会改变原字符串，于是我必须使用 `strcpy` 将传入的 `commmand` 拷贝一份为 `cmd_str`，而该 `cmd_str` 是局部变量，和问题1相同
 + **解决2**：保证传入的 `command` 不是常量字符串（在传入之前先 `strcpy`），删除函数内部的 `strcpy`，使得`command` 在该函数内部不是局部变量
-
-
 
 #### 问题小结
 
@@ -1915,6 +1922,228 @@ int main()
   3
   ```
 
+
+
+> cat a.txt 会把a.txt作为参数，打开文件，从a.txt读取并写入标准输出
+> cat <a.txt 没有参数，cat从标准输入读取，而标准读取被重定向为a.txt，然后也是输出到标准输出
+
+
+
+读入字符串相关：`fgets` 会读入换行符或者 `Ctrl-D` 也能结束
+
++ 若直接将最后一个字符置为 `\0`，将导致按 `Ctrl-D` 的情况丢失最后一个字符。
++ 因此必须多个判断，是换行再读入，不是则不读
+
+```c
+fgets(line, 80, stdin);
+int len = strlen(line);
+if (line[len - 1] == '\n')
+    line[len - 1] = '\0'; // delete newline
+```
+
+### **思路分析**
+
+由于代码复杂度增加，对之前代码进行重构，总体的流程图如下
+
+![1591706867778](OS-Lab.assets/1591706867778.png)
+
++ 先读入一行命令
++ 交给 `parse_command` 进行解析，并将解析结果存放于全局变量中
++ 根据命令类型进行分类处理
+  + 若首命令为 `exit`，直接退出
+  + 若为 `cd`，作为内置命令实现并处理
+  + 若为 `pwd` 或外置命令，调用 `exec_pipe` 处理
+
+#### 命令数据结构
+
+##### 结构体与全局变量
+
+为了便于处理，减低字符串处理的复杂度，设置以下结构体存储单命令
+
+```c
+struct command {
+    int argc; // 参数个数
+    char *argv[MAX_ARGV]; // 具体参数
+    char *input; // 输入重定向
+    char *output; // 输出重定向
+};
+```
+
+同时为了编程的简单，设置全局变量存储所有命令
+
++ `cmd_cum = 1`：非管道命令
++ `cmd_cum > 1`：管道命令
+
+```c
+int cmd_num = 0; // 命令个数
+struct command cmds[MAX_CMD]; // 全局变量存储命令
+```
+
+##### 初始化问题
+
+`cmd` 使用之前必须初始化，否则会出现**野指针问题**，用 `memset` 时最好是用来清 0，这样指针会赋值为 NULL, 整型赋值为 0。
+
++ `cmd` 是指针，`sizeof(cmd) == 4`，因此要用第二种方式才能正确取出结构体字节大小
+
+```c
+struct commmand *cmd;
+memset(cmd, 0, sizeof(cmd)); // sizeof(cmd) = 4
+memset(cmd, 0, sizeof(struct command));
+```
+
+##### 内存申请
+
+`struct command` 内部有许多指针，单独分割字符串时，不能使用局部变量，如使用 `char str[100]` 进行赋值，原因如下：
+
++ 局部变量在函数返回后立即被释放
++ `strtok/strtok_r` 会改变源字符串，因此无法处理**字符串常量**的情况
+
+**解决方案**
+
++ **申请**
+  + 定义一个**全局变量** `char *cmd_str`
+  + 使用 `malloc` 申请一片内存，并将要处理的命令复制过去（**分割函数**会**修改原串**）
++ **释放**
+  + 只要不手动释放，`cmd_str` 一直存于堆区
+  + 执行完命令后记得释放内存，减少内存碎片
+
+#### 命令解析
+
+可使用 `strtok_r` 进行二级分割
+
++ 先以 `|` 分割，得到单命令
++ 再以空格进行分割，得到对应的**命令名称**和**参数列表**
++ 对所有的参数列表，进行管道分割，管道存在以下四种情况
+  + 无空格：`<a.txt`，`>a.txt`
+  + 有空格：`< a.txt`，`> a.txt`
++ 从头到尾处理每个参数，遇到首字符为 `<` 或 `>` 进行判**断处理**
+
+命令解析逻辑比较简单，但处理起来较为繁琐，需万分小心，以下为**易错点**
+
+##### strtok & strtok_r
+
+使用注意点
+
+- **改变原串**：不可分割**字符串常量**：二者均会**修改传入的原串**，即将分隔符置空
+- **参数特点**：第一次传入原串，之后均传入NULL；分割参数是字符串形式，**不可用字符**
+- **能否嵌套**：`strtok` **不可嵌套使用**，而 `strtok_r` 可利用第三个参数进行区分
+
+#### 多个管道连接
+
+```c
+// cmd[0] cmd[1] ... cmd[child_count-1]
+// 执行前child_count个命令
+void exec_pipe(int child_count)
+{
+    // 边界条件: 直接返回
+    if (childe_count == 0) return;
+    // 申请pipe
+    pipe(fd_array);
+    // fork 子进程, 子进程会复制主进程的 pipe
+    pid = fork();
+    if (pid == 0) {
+        // 第1个无需从pipe读端输入
+        if (child_count != 1) 重定向 0 到 fd_array[0];
+        // 执行一个非管道命令: 内含exec调用
+        exec_simple(commands[child_count-1]);
+    }
+    // 最后一个无需从pipe写端输出
+    // if (child_count != cmd_count) 重定向 1 到 fd_array[1];
+    重定向 1 到 fd_array[1];
+    // 递归执行 
+    exec_pipe(child_count - 1);
+    // 为啥要wait？不wait，该进程可能先退出，子进程还在执行，导致父进程的while先执行
+    wait(NULL);
+}
+```
+
+十分巧妙的代码：难点在于如何连接不同的pipe，总体思想是将所有pipe串联为一条链
+
++ 子进程复制父进程的文件描述符，上一个进程对1进行的重定向，在子进程中保留，从而联系两个 pipe。若子进程不是执行第一个命令，则输入重定向将当前pipe连接。
++ 进程，堆栈图（每个进程内含独立的堆栈，别混了）
+
+##### 一个简单的 demo
+
+实现 `cat /etc/passwd | sort | wc -l`
+
++ 注意关闭管道
++ 由于存在输出重定向，因此 `printf` 无法适用，这里应该写入指定日志文件，如使用 `dprintf`
+
+```c
+dprintf(logfd, "[main]: child_cnt = %d, pid = %d, ppid = %d\n", child_cnt, getpid(), getppid());
+```
+
+完整代码如下：
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <string.h>
+
+int cmd_cnt = 3;
+char *cmd[10][20] = {
+    {"cat", "/etc/passwd", NULL},
+    {"sort", NULL},
+    {"wc", "-l", NULL}
+};
+
+int logfd;
+
+void exec_pipe(int child_cnt)
+{
+    if (child_cnt == -1) return;
+    int fd[2];
+    pipe(fd);
+    int pid = fork();
+    if (pid == 0) {
+        if (child_cnt != 0) dup2(fd[0], 0);
+        close(fd[0]); // import !!!
+        close(fd[1]);
+        execvp(cmd[child_cnt][0], cmd[child_cnt]);
+    }
+
+    dup2(fd[1], 1);
+    close(fd[0]); // import !!!
+    close(fd[1]);
+
+    exec_pipe(child_cnt - 1);
+    wait(NULL); // !!!
+}
+
+int main()
+{
+    scanf("%d", &cmd_cnt);
+    logfd = open("log", O_RDWR|O_CREAT, 0666);
+    exec_pipe(cmd_cnt - 1);
+    close(logfd);
+    return 0;
+}
+```
+
+#### 重定位完善 & 内置命令处理
+
+**内置命令处理问题**：把`cd pwd exit` 放在 `exec_simple` 中，导致这些命令均失效，原因分析如下：
+
+- 假设主进程为 P1，P1 在 `exec_command` 中 `fork` 子进程 P2，P2 在 `exec_pipe` 中 `fork` 子进程 P3，P3进进程中实现了 `cd pwd exit`，等于说，这三个命令均是在进程 P3 下的操作
+- `cd` ：改变的是 P3 进程的工作目录，而 P3 结束后 主进程 P1(shell 进程)依旧没改变
+- `pwd`：输出的是 P3 进程的工作目录，但**子进程会继承父进程属性**，因此 **P1 和 P3 的工作目录一致**
+- `exit`：仅仅退出 P3 进程，而目标是退出 P1进程
+
+**重定向部分**：在 `exec_simple` 已经处理了**外置命令的输入和输出重定向**，以下为内置命令的处理
+
+- `cd` 若不带参数默认不处理，不像 `cat` 会默认从标准输入读数据，无输出
+- `exit` 无参数，无输出，因此也不用重定向
+- `pwd` 无参数，但有输出，且**它的输出能作为管道的输入**（输出重定向）
+
+**最终结论**
+
++ 将 `cd` 和 ` exit` 移动到 `exec_command` 的 `fork` 之前处理
++ 将 `pwd` 继续保留在 `exec_simple`，和外置命令一同处理（因为它要考虑输出重定向）
+
 ### 遇见问题
 
 > 父进程创建管道，子进程向管道写数据，父进程读数据，若是父进程中没有close(fd[1])，则父进程会卡死在execvp中？
@@ -1991,7 +2220,38 @@ int main() {
 }
 ```
 
+#### pipe管道读写行为
 
+[行为参考](https://blog.csdn.net/qq_42914528/article/details/82023408?tdsourcetag=s_pctim_aiomsg)|[pipe原理](http://luodw.cc/2016/08/01/pipeof/)
+
++ **读管道**
+  + **有数据**：读取指定数据，read 返回实际读到的字节数
+  + **无数据**
+    + **写端全关闭**：read 返回0，类似文件结束
+    + **存在写端**：read 阻塞，当前进程会让出CPU，等待写端写入数据
+
++ **写管道**
+  + **读端全关闭**：进程异常终止（可用SIGPIPE捕捉异常）
+  + **存在读端**
+    + **管道已满**：write 阻塞
+    + **管道未满**：返回实际写入的字节数
+
+### shell3 小结
+
++ **适当重构**：当代码复杂到一定程度时，必须考虑重构，虽然是一件很费时费力的事，但有以下优点：
+  + **可扩展性**：良好的程序设计为后续开发提供极大便利
+  + **可调试性**：重新设计的代码结构便于进行**单元测试**，调试方便
+  + **可阅读性**：结构重新划分，函数接口的设计，函数和变量的命名更加规范，每个函数不超过 20 行
+  + **抽象封装**：重构是一个提升自己的**代码抽象封装能力**的极佳途径，对设计会有更深理解
++ **调试技巧**：软件测试技巧比较多，涉及到**多进程并发**和**重定向+管道**，调试较为棘手，可采取以下策略
+  + **多进程并发**：可调用 `getpid()` 获取当前进程 `pid` 和 `getppid()` 获取父进程 `pid`， 来帮助判断当前是哪个进程在执行
+  + **重定向+管道**：以前使用的是 `printf`，默认打印到标准输出
+    + 若只是普通的重定向，那么可以打开对应文件查看输出
+    + 若重定向为管道，输出就无法查看
+  + **日志调试**：为了解决以上调试困难，可用**日志**来记录调试信息，日志就是打开一个 `log.txt` 文件，把所有的输出全写到文件里，具体实现可用 `fprintf` 或者 `dprintf` 
+  + **demo 验证**：简化条件，验证想法
+    + **算法设计**：在面对一个复杂或陌生的逻辑时，先写一个简单的 `demo` 验证其正确性。比如我对 `strtok_r` 和 `exec_pipe` 都写了 `demo` 进行正确性验证，在套到当前系统中，通过率极高
+    + **定位问题**：可先用**二分法进行问题定位**，然后逐步删除没问题的部分，将**复杂部分**或**重点怀疑部分**抽取作为 demo 进行验证
 
 # 常见问题
 
@@ -2122,6 +2382,16 @@ xv6，ucore
 [课程地址](https://www.linuxmooc.com/)
 
 [程序装载和链接](https://h5.dingtalk.com/group-live-share/index.htm?encCid=60848862d5c602a4a550b0181a94cdcd&liveUuid=935a8677-b433-4100-88c8-1f5832fcc38a&tdsourcetag=s_pctim_aiomsg#/)
+
+[Centos7安装vscode](https://vscode.readthedocs.io/en/latest/setup/linux/)
+
++ vim模拟器
++ 注释+文档生成doxygen插件
++ 代码格式化：按`shift+F+alt`，安装对应插件，然后在 `vim` 可选中对应行，然后按 `=`
+
+[Centos源码编译安装tcc](https://blog.csdn.net/hjw1314kl/article/details/102242505)
+
+[WSL安装教程](https://blog.csdn.net/weixin_45882303/article/details/105282492)
 
 CCF考题
 
