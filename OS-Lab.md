@@ -837,6 +837,115 @@ execl("/bin/echo","echo","a","b","c",NULL);
 + 从使用角度来说，有PATH比无PATH更方便；参数形式vector比list更好编程，易于修改。因此，编程推荐使用`execvp`。
 + 从进化历史来说，execl应该最先出现，然后发现每次调用函数要传递参数太多了，于是出现vector传参方式。又发现找不到系统的执行文件，于是增加了PATH查找路径方式。最后`execvp`集大成者。
 
+## 线程
+
+### 线程创建
+
+创建接口：`int pthread_create(pthead_t *thread, const pthread_attr_t *attr, void* (*start_routine)(void *), void *arg)`
+
++ `thread`：保存即将创建的线程 id
++ `attr`：线程属性，一般默认为 `NULL`
++ `start_routine`：函数指针指向线程开始执行的函数，注意函数必须写成该接口形式
++ `arg`：作为 `start_routine` 的参数进行传递
+
+文件 `ex1.c`,主线程和子线程交替打印
+
+```c
+#include <stdio.h>
+#include <pthread.h>
+
+void* compute(void *arg)
+{
+    for (int i = 5; i < 9; ++ i) {
+        printf("worker= %d\n", i);
+        sleep(1);
+    }
+}
+
+int main()
+{
+    pthread_t worker_id;
+    pthread_create(&worker_id, NULL, &compute, NULL);
+    for (int i = 1; i < 5; ++ i) {
+        printf("main = %d\n", i);
+        sleep(1);
+    }
+    return 0;
+}
+```
+
++ `pthread` 不是 Linux 默认的库，因此编译时需加入链接库，即 `tcc ex1.c -lpthread`
++ 工作线程和主线程会交替输出
+
+### 线程参数
+
++ **单个参数**：整型或字符串，可直接强制转换类型为 `void*`，到函数内部再转换回来
++ **多个参数**：必须使用结构体，将结构体指针强制转换为 `void*`，到函数内部再转换回来
+
+### 线程创建&参数&等待综合实例
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <stdlib.h> // malloc !!!
+
+int array[] = {1, 2, 3, 4, 5, 6};
+#define NR_TOTAL 6
+#define NR_CPU 3
+#define NR_CHILD (NR_TOTAL/NR_CPU)
+
+struct param {
+    int *array;
+    int start;
+    int end;
+};
+
+struct result {
+    int sum;
+};
+
+void* compute(void *arg)
+{
+    struct param *param = (struct param *)arg;
+
+    struct result *result;
+    int sum = 0;
+    for (int i = param->start; i < param->end; ++ i)
+        sum += param->array[i];
+    result = (struct result *)malloc(sizeof(struct result));
+    result->sum = sum;
+    return result;
+}
+int main()
+{
+    pthread_t workers[NR_CPU];
+    struct param params[NR_CPU];
+
+    for (int i = 0; i < NR_CPU; ++ i) {
+        struct param *param = &params[i];
+        param->array = array;
+        param->start = i * NR_CHILD;
+        param->end = (i + 1) * NR_CHILD;
+        pthread_create(&workers[i], NULL, &compute, (void*)param);
+
+    }
+
+    int sum = 0;
+    for (int i = 0; i < NR_CPU; ++ i) {
+        struct result *result; // = (struct result *)malloc(sizeof(struct result));
+        pthread_join(workers[i], (void **)&result);
+        sum += result->sum;
+        free(result);
+    }
+
+    printf("sum = %d\n", sum);
+    return 0;
+}
+```
+
+
+
 ## 文件描述符
 
 文件描述符(file descriptor)
@@ -2252,6 +2361,272 @@ int main() {
   + **demo 验证**：简化条件，验证想法
     + **算法设计**：在面对一个复杂或陌生的逻辑时，先写一个简单的 `demo` 验证其正确性。比如我对 `strtok_r` 和 `exec_pipe` 都写了 `demo` 进行正确性验证，在套到当前系统中，通过率极高
     + **定位问题**：可先用**二分法进行问题定位**，然后逐步删除没问题的部分，将**复杂部分**或**重点怀疑部分**抽取作为 demo 进行验证
+
+# 多线程题目
+
+## pi1.c: 使用2个线程根据莱布尼兹级数计算PI
+
+### 需求分析
+
+- 莱布尼兹级数公式: 1 - 1/3 + 1/5 - 1/7 + 1/9 - ... = PI/4
+- 主线程创建1个辅助线程
+- 主线程计算级数的前半部分
+- 辅助线程计算级数的后半部分
+- 主线程等待辅助线程运行结束后,将前半部分和后半部分相加
+
+### 思路分析
+
++ PI 的计算公式为 $4\sum_\limits{i=1}^N{\frac{(-1)^{N+1}}{2N-1}}$
+
++ 可设置最大迭代次数 `N=1000`，设置全局变量 `PI1` 和 `PI2` 记录前后部分级数的累加和。
+
++ 设置线程启动函数 `compute` 开始和结束的参数分别为 `start` 和 `end`，参数结构体如下
+
+```c
+struct param {
+    int start;
+    int end;
+};
+```
+
++ 启动函数 `compute` 的实现如下，可设置一个 `sign` 来控制正负号
+
+```c
+double sum = 0;
+int sign = 1;
+if (param->start % 2 == 0) sign = -1;
+for (int i = param->start; i < param->end; ++ i, sign = -sign)
+    sum += (double)sign / (2 * i - 1);
+```
+
++ 主线程在累加最终结果前，必须等到子线程执行完毕，否则 `PI2` 是一个未计算的值
+
+### 注意点
+
++ 累加和均使用 `double` 类型，计算 PI 时注意给整型数加上 `(double)` 进行强制转换，否则默认两个整型相除还是整型
++ 线程执行函数的返回值的结构体 malloc 后，出现段错误，**十分坑人**，原因如下
+  + 使用 malloc 但是没包含头文件 `stdlib.h`，由于历史原因，它只会报警告而不会报错，因此也能通过编译
+  + TCC 编译器默认不会提示警告
+
+## pi2.c: 使用N个线程根据莱布尼兹级数计算PI
+
+### 需求分析
+
+- 与上一题类似，但本题更加通用化，能适应N个核心
+- 主线程创建N个辅助线程
+- 每个辅助线程计算一部分任务，并将结果返回
+- 主线程等待N个辅助线程运行结束，将所有辅助线程的结果累加
+- 本题要求 1: 使用线程参数，消除程序中的代码重复
+- 本题要求 2: 不能使用全局变量存储线程返回值
+
+### 思路分析
+
+#### 数据结构
+
++ 为了能够适应 N 个核心，因此定义对应宏如下，`NR_TOTAL` 表示迭代次数，`NR_CPU` 表示核心/辅助线程个数，`NR_CHILD` 表示每个辅助线程要迭代的次数
+
+```c
+#define NR_TOTAL 1000
+#define NR_CPU 4
+#define NR_CHILD (NR_TOTAL/NR_CPU)
+```
+
++ 为了消除代码重复，定义**输入参数结构体**，输入参数结构体与 `pi1.c` 相同
+
+```c
+struct param {
+    int start;
+    int end;
+};
+```
+
++ 为了不使用全局变量，定义**返回值结构体**如下，保存当前计算结果的总和，注意数据类型必须使用**浮点数**
+
+```c
+struct result {
+    double sum;
+};
+```
+
+#### 算法设计
+
+**总体思路**：主线程先启动指定个数的子线程，然后等待对应的子线程执行完毕，才将其返回结果进行累加。其中在子线程启动时**传递结构体参数**，结束时**返回结构体结果**，以此来消除对**全局变量的依赖**和**代码的重复**。
+
++ 线程启动函数`compute` 功能与 `pi1.c` 相同，只不过多了输入的参数和返回值，因此可使程序更加通用化。注意返回值在函数内部必须**使用 `malloc` 动态申请空间**，否则该线程一结束，内存就会被销毁。
++ **创建子线程**：
+  + **正确设置参数**：设置一个 `step` 变量，初值为 1，那么加上迭代次数 `NR_CHILD` 就为计算的结尾，即区间 `[step, step+NR_CHILD)`，注意**左闭右开**
+  + 传递参数时注意使用结构体的指针，最好进行显示的强制类型转换，编译时添加**警告提示**
+
+```c
+int step = 1;
+for (int i = 0; i < NR_CPU; ++ i) {
+    params[i].start = step;
+    params[i].end = step + NR_CHILD;
+    pthread_create(&workers[i], NULL, &compute, (void*)&params[i]);
+    step += NR_CHILD;
+}
+```
+
++ **等待子线程**：和 `pi1.c` 一样，主线程必须等对应的子线程执行完毕，才能累加它的返回结果。`join` 会使主线程陷入阻塞状态。注意释放 `result`，避免过多产生过多内存碎片。注意返回结果参数要传入二维指针
+
+```c
+double sum = 0;
+for (int i = 0; i < NR_CPU; ++ i) {
+    struct result *result;
+    pthread_join(workers[i], (void **)&result);
+    sum += (result->sum) * 4;
+    free(result);
+}
+```
+
+## sort.c: 多线程排序
+
+### 需求分析
+
+- 主线程创建两个辅助线程
+- 辅助线程1使用选择排序算法对数组的前半部分排序
+- 辅助线程2使用选择排序算法对数组的后半部分排序
+- 主线程等待辅助线程运行结束后,使用归并排序算法归并子线程的计算结果
+- 本题要求 1: 使用线程参数，消除程序中的代码重复
+
+### 数据结构
+
+和 `pi1.c` ，`pi2.c` 类似，也是通过定义**输入参数和返回结构体**来消除代码重复。
+
++ 全局结构和宏定义
+  + `array` 存储要排序的数组
+  + `NR_TOTAL` 表示待排序数组的长度
+  + `NR_CPU` 表示可用核心个数，这里自定义修改
+  + `NR_CHILD` 表示每个核心至少要处理的元素个数
+
+```c
+int array[] = {9, 6, 9, 8, 7, 10, 5, 1, 3, 2, 4};
+#define NR_TOTAL 11
+#define NR_CPU 2
+#define NR_CHILD (NR_TOTAL/NR_CPU)
+```
+
++ 输入参数结构体
+  + `arr`：待排序的数组的地址
+  + `start`：第 `start` 个元素开始排序
+  + `end`：第 `end` 个元素结束排序
+  + 注意排序区间为左闭右开 `[start, end)`
+
+```c
+struct param {
+    int *arr;
+    int start;
+    int end;
+};
+```
+
++ 返回结构体
+  + `arr`：存储排好序的数组首地址（注意这个排序不改变原数组，因此 `arr` 需要动态申请）
+  + `len` ：排好序的数组长度
+
+```c
+struct result {
+    int *arr;
+    int len;
+};
+```
+
+### 算法设计
+
+**总体思路**：整体框架与前两个实验类似，主线程通过传入不同参数来启动两个子线程，等到**两个子线程均结束**时，主线程才可以进行合并两个有序数组。吸取了 `strtok` 的教训，深知改变原数组带来的麻烦，因此子线程返回的有序数组均是使用 `malloc` 申请的空间。
+
+#### 选择排序
+
+枚举每个元素，从该元素的下一个元素开始向后查找最小值，若最小值小于当前元素，则交换二者。其伪代码如下：
+
+```c
+for Ai in A {
+	找到A[i+1,i+2...N]中的最小值min_val
+	if (min_val < Ai) 交换二者
+}
+```
+
+#### 数组拷贝
+
+为了排序过程不改变原数组，采用 `malloc` 动态申请空间来拷贝数组的方式。
+
++ **长度计算**：先通过`len = end - start` 计算所需空间大小
++ **一次申请**：使用 `malloc` 申请空间（必须包含头文件 `stdlib.h`，没包含也不会报错，**巨坑**）
++ **二次申请**：刚才申请的是结构体 `result` 的空间，而 `result` 中的指针依旧指向空，所以这里需要为 `arr` 指针申请内存（类似**二维数组的空间申请，常常遗忘第一维的申请，导致段错误**）
++ **遍历赋值**：遍历原数组，将值一一赋给 `result->arr`
+
+```c
+struct param *param = (struct param *) arg;
+
+struct result *result = (struct result *) malloc(sizeof(struct result));
+result->len = param->end - param->start;
+result->arr = (int *) malloc(sizeof(int) * result->len);
+
+for (int i = 0; i < result->len; ++ i)
+    result->arr[i] = param->arr[param->start + i];
+```
+
+#### 归并有序数组
+
+思路比较简单，因为两个数组已经同向有序，可设置双指针 `i` 和 `j` 分别指向两个数组的起始。申请一个足够容纳两个数组的空间，设置指针 `k` 执行开头。每次在 `i` 和 `j` 中选择较小者，填入 `k` 中，被选中和填入的部分指针后移一位，直到 `i` 和 `j` 有一方结束。再将尚未结束的全部填入 `k` 中。
+
+其**时间和空间复杂度**均为 `O(n)`。
+
+实现代码如下：
+
+```c
+void merge(struct result *a, struct result *b)
+{
+    int *res = (int *) malloc(sizeof(int) * (a->len + b->len));
+    int i = 0, j = 0, k = 0;
+    while (i < a->len && j < b->len) {
+        if (a->arr[i] < b->arr[j])
+            res[k ++] = a->arr[i ++];
+        else
+            res[k ++] = b->arr[j ++];
+    }
+    if (i < a->len)
+        while (i < a->len)
+            res[k ++] = a->arr[i ++];
+    else
+        while (j < b->len)
+            res[k ++] = b->arr[j ++];
+}
+```
+
+#### 创建线程
+
++ 注意设置好起始和结束位置
++ 考虑到待排序数组长度和 CPU 核心个数不是整倍数关系，因此对于最后一个核心需加上余数
+
+```c
+for (int i = 0; i < NR_CPU; ++ i) {
+    params[i].arr = array;
+    params[i].start = i * NR_CHILD;
+    params[i].end = (i + 1) *  NR_CHILD;
+    if (i == 1)
+        params[i].end += NR_TOTAL % NR_CHILD;
+    pthread_create(&workers[i], NULL, &sort, (void*)&params[i]);
+}
+```
+
+#### 等待线程
+
++ 此处必须等待所有子进程均结束后，才能进行归并排序，因此要先将子进程的返回结果保存下来
+
+```c
+struct result *result[2];
+for (int i = 0; i < NR_CPU; ++ i) {
+    pthread_join(workers[i], (void **)&result[i]);
+}
+
+merge(result[0], result[1]);
+```
+
+### 注意点
+
++ 数组赋值拷贝不可以用 `strncpy`，这是按字节进行拷贝，处理字符串的，必须一个个遍历赋值
++ 获取子线程的返回值时，传入参数是二维指针。好比交换两个值的函数 `sawp(int* a, int* b)`，必须传入一维指针一样，这样才能改变参数值
 
 # 常见问题
 
