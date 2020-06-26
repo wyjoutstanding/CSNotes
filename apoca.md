@@ -713,6 +713,8 @@ for (i : 1~n) {
   + 中序+前序/后序建树
     + [105. 从前序与中序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)：前后序确定根，中序划分左右子树个数。注意结点值是否无重复，若重复，可用map存储结点指针。（**本质还是后序遍历处理**）
     + [106. 从中序与后序遍历序列构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-inorder-and-postorder-traversal/):前序和中序改改即可。
+  + 先序序列还原二叉树
+    + [1028. 从先序遍历还原二叉树](https://leetcode-cn.com/problems/recover-a-tree-from-preorder-traversal/):仅一个节点时默认为左子树。用栈进行迭代简单，判断当前层和栈顶的层次关系，若当前层高度为栈顶层次+1，为其左孩子；否则为其中路径中的一个节点的右孩子
 + 层次遍历（bfs）
   + 分层遍历保存结果：
     + [102. 二叉树的层序遍历](https://leetcode-cn.com/problems/binary-tree-level-order-traversal/)；标记层次或利用队列大小均可。
@@ -1433,6 +1435,12 @@ void nextPermutation(vector<int>& nums) {
 next时保存top旧值，作为后续返回值，然后记录下一个next为top新值。若无下一个，则置isEnd=true。
 
 hasNext只需判断isEnd取值即可。
+
+## 高精度
+
+### 加法
+
+二进制加法：[67. 二进制求和](https://leetcode-cn.com/problems/add-binary/)：模拟二进制的字符串加法
 
 # 奇淫巧技
 
