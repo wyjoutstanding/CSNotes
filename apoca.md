@@ -1338,6 +1338,24 @@ $$
 + **打表+数学计数**：**`cnt[i]`表示第i个奇数出现的位置**，那`[i,i+k-1]`存在k个奇数，可知`(i-1,i)和(i+k-1,i+k)`都是偶数，因此这k个奇数和两侧偶数组合的总个数为`(cnt[i]-cnt[i-1])*(cnt[i+k]-cnt[i+k-1])`。
 + 双指针：和【数学计数】思想一致，只不过空间复杂度为O(1)罢了。
 
+# 组合数学
+
+## 卡特兰数
+
+卡特兰数是组合数学中的著名数列
+
++ 递推公式：$f(i)=f(0)\times f(i-1)+f(1)\times f(i-2) + ...+f(i-1)\times f(0)=\sum_\limits{j=0}^{i-1}{f(j)\times f(i-j-1)}$
+
+[96. 不同的二叉搜索树](https://leetcode-cn.com/problems/unique-binary-search-trees/)：给定值为 1...n 结点，求可构成的 BST 个数。
+
++ 枚举每个结点 i 作为根，根据 BST 特点，可知 1...i-1 构成左子树，i+1...n 构成右子树。
++ 设 $f(i)$ 表示以 i 为根结点能构成的 BST 个数
++ 设 $g(n)$ 表示 n 个结点可构成的 BST 个数，即 $g(n)=f(1)+f(2)+...+f(n)$
++ 当 i 为根结点时，左子树为 1...i-1，右子树为 i+1...n，所以 $f(i)=g(i-1)\times g(n-i)$
++ 综上：$g(n)=\sum\limits_{j=0}^{i-1}{g(j)\times g(n-j-1)}$
+
+[95. 不同的二叉搜索树 II](https://leetcode-cn.com/problems/unique-binary-search-trees-ii/)：递归思路构建所有二叉树，以每个结点作为根，左子树和右子树序列是确定的
+
 # 排列组合
 
 ## 排列
